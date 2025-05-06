@@ -1,42 +1,37 @@
 import { fetchProducts } from '@/lib/fetchProducts';
 import ProductCard from './components/ProductCard';
+import { Suspense } from 'react';
 
-interface Props {
-  searchParams: {
-    busca?: string;
-    categoria?: string;
-  };
-}
-
-export default async function Home({ searchParams }: Props) {
+export default async function Home({ searchParams }: { searchParams?: { categoria?: string; busca?: string } }) {
   const produtos = await fetchProducts();
 
-  const busca = searchParams.busca?.toLowerCase() || '';
-  const categoriaSelecionada = searchParams.categoria?.toLowerCase() || '';
+  const categoria = searchParams?.categoria?.toLowerCase() || '';
+  const busca = searchParams?.busca?.toLowerCase() || '';
 
   const produtosFiltrados = produtos.filter((produto) => {
-    const titulo = produto.titulo?.toLowerCase() || '';
-    const categoria = produto.categoria?.toLowerCase() || '';
-    const descricao = produto.descricao?.toLowerCase() || '';
-    return (
-      (!categoriaSelecionada || categoria === categoriaSelecionada) &&
-      (!busca || titulo.includes(busca) || descricao.includes(busca) || categoria.includes(busca))
-    );
+    const matchCategoria = categoria ? produto.categoria?.toLowerCase() === categoria : true;
+    const matchBusca = busca
+      ? produto.titulo.toLowerCase().includes(busca) ||
+      produto.descricao?.toLowerCase().includes(busca) ||
+      produto.categoria?.toLowerCase().includes(busca)
+      : true;
+    return matchCategoria && matchBusca;
   });
 
   return (
-    <main className="p-6 max-w-6xl mx-auto font-sans">
-      <h1 className="text-3xl font-bold mb-6">Catálogo de Produtos</h1>
-
-      {produtosFiltrados.length === 0 ? (
-        <p className="text-gray-500">Nenhum produto encontrado.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {produtosFiltrados.map((produto) => (
-            <ProductCard key={produto.slug} product={{ ...produto, imagemPrincipal: produto.imagemPrincipal || '' }} />
-          ))}
-        </div>
-      )}
+    <main className="max-w-6xl mx-auto p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 font-sans">
+      <Suspense fallback={<p>Carregando produtos...</p>}>
+        {produtosFiltrados.map((produto) => (
+          <ProductCard
+            key={produto.slug}
+            product={{
+              ...produto,
+              imagemPrincipal: produto.imagemPrincipal || '',
+            }}
+          />
+        ))}
+      </Suspense>
     </main>
+
   );
 }
