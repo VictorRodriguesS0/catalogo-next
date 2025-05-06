@@ -5,8 +5,14 @@ import { notFound } from 'next/navigation';
 import GaleriaProduto from '@/app/components/GaleriaProduto';
 import { formatPreco } from '@/lib/formatPrice';
 
+interface PageProps {
+    params: {
+        slug: string;
+    };
+}
+
 const ProductPage = async (...args) => {
-    const { params } = await args[0]; // <- await necessário aqui
+    const { params } = await args[0];
     const { slug } = params;
 
     const products = await fetchProducts();
@@ -22,37 +28,47 @@ const ProductPage = async (...args) => {
     ].filter(Boolean);
 
     return (
-        <main className="p-6 max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-8">
-                <div className="flex-1">
-                    <GaleriaProduto imagens={imagens} titulo={product.titulo} />
-                </div>
-                <div className="flex-1">
-                    <h1 className="text-3xl font-bold mb-2">{product.titulo}</h1>
+        <main className="px-4 py-10 max-w-6xl mx-auto font-sans">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+                <GaleriaProduto imagens={imagens} titulo={product.titulo} />
+
+                <div className="space-y-4">
+                    <h1 className="text-3xl font-bold text-gray-900">{product.titulo}</h1>
+
                     {product.cor && (
-                        <p className="text-sm text-gray-500 mb-1">Cor: {product.cor}</p>
+                        <p className="text-sm text-gray-500">Cor: {product.cor}</p>
                     )}
-                    <p className="text-md text-gray-500 mb-4">
-                        Categoria: {product.categoria}
-                    </p>
-                    <p className="text-2xl font-bold text-green-600 mb-4">
+
+                    <p className="text-sm text-gray-500">Categoria: {product.categoria}</p>
+
+                    <div className="text-3xl font-bold text-green-600">
                         {product.promocao ? (
                             <>
                                 {formatPreco(product.promocao)}{' '}
-                                <span className="text-sm line-through text-gray-500">
+                                <span className="text-base line-through text-gray-400 ml-2">
                                     {formatPreco(product.valor)}
                                 </span>
                             </>
                         ) : (
                             formatPreco(product.valor)
                         )}
-                    </p>
+                    </div>
+
                     {product.descricao && (
                         <div
-                            className="prose prose-sm md:prose lg:prose-lg max-w-none"
+                            className="prose prose-sm md:prose lg:prose-lg max-w-none text-gray-700"
                             dangerouslySetInnerHTML={{ __html: product.descricao }}
                         />
                     )}
+
+                    <a
+                        href={`https://wa.me/5561983453409?text=Tenho interesse no produto ${encodeURIComponent(product.titulo)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block w-full bg-green-600 hover:bg-green-700 text-white text-center font-semibold py-3 px-4 rounded-xl transition"
+                    >
+                        Comprar no WhatsApp
+                    </a>
                 </div>
             </div>
         </main>

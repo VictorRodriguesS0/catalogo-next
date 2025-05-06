@@ -1,41 +1,72 @@
-"use client";
+'use client';
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import Image from "next/image";
+import { useState } from 'react';
+import Image from 'next/image';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
-type Props = {
+interface GaleriaProdutoProps {
     imagens: string[];
     titulo: string;
-};
+}
 
-export default function GaleriaProduto({ imagens, titulo }: Props) {
-    if (!imagens.length) return null;
+export default function GaleriaProduto({ imagens, titulo }: GaleriaProdutoProps) {
+    const [imagemSelecionada, setImagemSelecionada] = useState(imagens[0]);
+
+    if (!imagens || imagens.length === 0) return null;
+
+    if (imagens.length === 1) {
+        return (
+            <div className="w-full rounded-xl overflow-hidden shadow-sm border">
+                <Image
+                    src={imagens[0]}
+                    alt={titulo}
+                    width={800}
+                    height={800}
+                    className="w-full object-contain rounded-xl"
+                />
+            </div>
+        );
+    }
 
     return (
-        <div className="w-full max-w-2xl mx-auto">
+        <div className="w-full space-y-4">
+            <div className="rounded-xl border overflow-hidden">
+                <Image
+                    src={imagemSelecionada}
+                    alt={titulo}
+                    width={800}
+                    height={800}
+                    className="w-full object-contain rounded-xl transition-all duration-300"
+                />
+            </div>
+
             <Swiper
-                modules={[Navigation, Pagination]}
+                spaceBetween={12}
+                slidesPerView={imagens.length < 4 ? imagens.length : 4}
                 navigation
                 pagination={{ clickable: true }}
-                spaceBetween={16}
-                slidesPerView={1}
-                className="rounded-xl overflow-hidden"
+                modules={[Navigation, Pagination]}
+                className="w-full"
             >
-                {imagens.map((src, index) => (
+                {imagens.map((img, index) => (
                     <SwiperSlide key={index}>
-                        <div className="relative w-full h-[300px] md:h-[400px] bg-gray-100">
+                        <button
+                            onClick={() => setImagemSelecionada(img)}
+                            className={`border rounded-lg overflow-hidden focus:outline-none ${img === imagemSelecionada ? 'ring-2 ring-green-500' : ''
+                                }`}
+                        >
                             <Image
-                                src={src}
-                                alt={`${titulo} ${index + 1}`}
-                                fill
-                                className="object-contain"
-                                sizes="(max-width: 768px) 100vw, 512px"
+                                src={img}
+                                alt={`${titulo} - ${index + 1}`}
+                                width={100}
+                                height={100}
+                                className="w-full h-24 object-contain bg-white"
                             />
-                        </div>
+                        </button>
                     </SwiperSlide>
                 ))}
             </Swiper>
