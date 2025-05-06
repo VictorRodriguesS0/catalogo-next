@@ -6,6 +6,7 @@ import { Navigation, Thumbs } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
+import type { Swiper as SwiperType } from 'swiper';
 
 interface GaleriaProdutoProps {
     imagens: string[];
@@ -13,11 +14,10 @@ interface GaleriaProdutoProps {
 }
 
 export default function GaleriaProduto({ imagens, titulo }: GaleriaProdutoProps) {
-    const [thumbsSwiper, setThumbsSwiper] = useState(null);
+    const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 
     return (
         <div className="w-full">
-            {/* Swiper principal */}
             <Swiper
                 modules={[Navigation, Thumbs]}
                 navigation
@@ -36,10 +36,9 @@ export default function GaleriaProduto({ imagens, titulo }: GaleriaProdutoProps)
                 ))}
             </Swiper>
 
-            {/* Miniaturas */}
             {imagens.length > 1 && (
                 <Swiper
-                    onSwiper={setThumbsSwiper}
+                    onSwiper={(swiper) => setThumbsSwiper(swiper)}
                     spaceBetween={10}
                     slidesPerView={Math.min(imagens.length, 4)}
                     watchSlidesProgress
