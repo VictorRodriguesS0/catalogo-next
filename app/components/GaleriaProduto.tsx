@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
+import { Navigation, Thumbs } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+import 'swiper/css/thumbs';
 
 interface GaleriaProdutoProps {
     imagens: string[];
@@ -14,62 +13,49 @@ interface GaleriaProdutoProps {
 }
 
 export default function GaleriaProduto({ imagens, titulo }: GaleriaProdutoProps) {
-    const [imagemSelecionada, setImagemSelecionada] = useState(imagens[0]);
-
-    if (!imagens || imagens.length === 0) return null;
-
-    if (imagens.length === 1) {
-        return (
-            <div className="w-full rounded-xl overflow-hidden shadow-sm border">
-                <Image
-                    src={imagens[0]}
-                    alt={titulo}
-                    width={800}
-                    height={800}
-                    className="w-full object-contain rounded-xl"
-                />
-            </div>
-        );
-    }
+    const [thumbsSwiper, setThumbsSwiper] = useState(null);
 
     return (
-        <div className="w-full space-y-4">
-            <div className="rounded-xl border overflow-hidden">
-                <Image
-                    src={imagemSelecionada}
-                    alt={titulo}
-                    width={800}
-                    height={800}
-                    className="w-full object-contain rounded-xl transition-all duration-300"
-                />
-            </div>
-
+        <div className="w-full">
+            {/* Swiper principal */}
             <Swiper
-                spaceBetween={12}
-                slidesPerView={imagens.length < 4 ? imagens.length : 4}
+                modules={[Navigation, Thumbs]}
                 navigation
-                pagination={{ clickable: true }}
-                modules={[Navigation, Pagination]}
-                className="w-full"
+                thumbs={{ swiper: thumbsSwiper }}
+                className="mb-4 rounded-xl border overflow-hidden"
+                style={{ maxHeight: '400px' }}
             >
-                {imagens.map((img, index) => (
-                    <SwiperSlide key={index}>
-                        <button
-                            onClick={() => setImagemSelecionada(img)}
-                            className={`border rounded-lg overflow-hidden focus:outline-none ${img === imagemSelecionada ? 'ring-2 ring-green-500' : ''
-                                }`}
-                        >
-                            <Image
-                                src={img}
-                                alt={`${titulo} - ${index + 1}`}
-                                width={100}
-                                height={100}
-                                className="w-full h-24 object-contain bg-white"
-                            />
-                        </button>
+                {imagens.map((img, i) => (
+                    <SwiperSlide key={i}>
+                        <img
+                            src={img || '/fallback.png'}
+                            alt={titulo}
+                            className="w-full h-[400px] object-contain bg-white"
+                        />
                     </SwiperSlide>
                 ))}
             </Swiper>
+
+            {/* Miniaturas */}
+            {imagens.length > 1 && (
+                <Swiper
+                    onSwiper={setThumbsSwiper}
+                    spaceBetween={10}
+                    slidesPerView={Math.min(imagens.length, 4)}
+                    watchSlidesProgress
+                    className="mt-2"
+                >
+                    {imagens.map((img, i) => (
+                        <SwiperSlide key={i}>
+                            <img
+                                src={img || '/fallback.png'}
+                                alt={`Miniatura ${i + 1}`}
+                                className="w-full h-20 object-contain border rounded-md cursor-pointer bg-white"
+                            />
+                        </SwiperSlide>
+                    ))}
+                </Swiper>
+            )}
         </div>
     );
 }
