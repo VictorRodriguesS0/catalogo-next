@@ -3,11 +3,11 @@ import { notFound } from 'next/navigation';
 import GaleriaProduto from '../../components/GaleriaProduto';
 import { formatPreco } from '@/lib/formatPrice';
 
-interface Props {
+export default async function ProductPage({
+    params,
+}: {
     params: { slug: string };
-}
-
-export default async function ProductPage({ params }: Props) {
+}) {
     const products = await fetchProducts();
     const product = products.find((p) => p.slug === params.slug);
 
