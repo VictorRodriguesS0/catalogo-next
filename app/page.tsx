@@ -2,14 +2,20 @@ import { fetchProducts } from '@/lib/fetchProducts';
 import ProductCard from './components/ProductCard';
 import { Suspense } from 'react';
 
-export default async function Home({ searchParams }: { searchParams?: { categoria?: string; busca?: string } }) {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: { categoria?: string; busca?: string };
+}) {
   const produtos = await fetchProducts();
 
   const categoria = searchParams?.categoria?.toLowerCase() || '';
   const busca = searchParams?.busca?.toLowerCase() || '';
 
   const produtosFiltrados = produtos.filter((produto) => {
-    const matchCategoria = categoria ? produto.categoria?.toLowerCase() === categoria : true;
+    const matchCategoria = categoria
+      ? produto.categoria?.toLowerCase() === categoria
+      : true;
     const matchBusca = busca
       ? produto.titulo.toLowerCase().includes(busca) ||
       produto.descricao?.toLowerCase().includes(busca) ||
@@ -19,19 +25,20 @@ export default async function Home({ searchParams }: { searchParams?: { categori
   });
 
   return (
-    <main className="max-w-6xl mx-auto p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 font-sans">
+    <main className="max-w-6xl mx-auto p-4">
       <Suspense fallback={<p>Carregando produtos...</p>}>
-        {produtosFiltrados.map((produto) => (
-          <ProductCard
-            key={produto.slug}
-            product={{
-              ...produto,
-              imagemPrincipal: produto.imagemPrincipal || '',
-            }}
-          />
-        ))}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 font-sans">
+          {produtosFiltrados.map((produto) => (
+            <ProductCard
+              key={produto.slug}
+              product={{
+                ...produto,
+                imagemPrincipal: produto.imagemPrincipal || '',
+              }}
+            />
+          ))}
+        </div>
       </Suspense>
     </main>
-
   );
 }
