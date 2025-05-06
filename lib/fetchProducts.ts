@@ -53,7 +53,7 @@ export async function fetchProducts(): Promise<Product[]> {
 
                 resolve(validProducts);
             },
-            error: (error) => reject(error),
+            error: (error: unknown) => reject(error),
         });
     });
 }
