@@ -1,7 +1,17 @@
-export function formatPreco(valor: string | undefined): string {
-    if (!valor) return '';
-    const valorNumerico = valor.replace(/[^\d,.-]/g, '').replace(',', '.');
-    const numero = parseFloat(valorNumerico);
-    if (isNaN(numero)) return '';
-    return `R$ ${numero.toFixed(2).replace('.', ',')}`;
+export function formatPreco(valor: string | number): string {
+    if (typeof valor === "string") {
+        valor = valor
+            .replace("R$", "")
+            .replace(/\./g, "") // remove pontos de milhar
+            .replace(",", ".") // troca vírgula decimal por ponto
+            .trim();
+    }
+
+    const numero = Number(valor);
+    if (isNaN(numero)) return "Preço inválido";
+
+    return numero.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    });
 }
