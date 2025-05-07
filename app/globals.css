@@ -3,10 +3,11 @@
 @import 'swiper/css/navigation';
 @import 'swiper/css/pagination';
 
-
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  /* fundo branco */
+  --foreground: #000000;
+  /* texto preto */
 }
 
 @theme inline {
@@ -16,15 +17,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* REMOVE o dark mode por completo */
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, sans-serif;
 }
