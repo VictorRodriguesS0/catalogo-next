@@ -17,13 +17,12 @@ export default function GaleriaProduto({ imagens, titulo }: GaleriaProdutoProps)
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 
     return (
-        <div className="w-full">
+        <div className="w-full overflow-hidden">
             <Swiper
                 modules={[Navigation, Thumbs]}
                 navigation
                 thumbs={{ swiper: thumbsSwiper }}
-                className="mb-4 rounded-xl border overflow-hidden"
-                style={{ maxHeight: '400px' }}
+                className="mb-4 rounded-xl border overflow-hidden max-h-[400px] max-w-full"
             >
                 {imagens.map((img, i) => (
                     <SwiperSlide key={i}>
@@ -42,7 +41,7 @@ export default function GaleriaProduto({ imagens, titulo }: GaleriaProdutoProps)
                     spaceBetween={10}
                     slidesPerView={Math.min(imagens.length, 4)}
                     watchSlidesProgress
-                    className="mt-2"
+                    className="mt-2 max-w-full"
                 >
                     {imagens.map((img, i) => (
                         <SwiperSlide key={i}>

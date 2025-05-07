@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { fetchTaxas, Taxa } from '@/lib/fetchTaxas';
+import { useSearchParams } from 'next/navigation';
 
 export default function CalculadoraPage() {
+    const searchParams = useSearchParams();
+
     const [valorFormatado, setValorFormatado] = useState('');
     const [entradaFormatada, setEntradaFormatada] = useState('');
     const [valorNumerico, setValorNumerico] = useState(0);
@@ -13,6 +16,21 @@ export default function CalculadoraPage() {
     const [verMais, setVerMais] = useState(false);
 
     useEffect(() => {
+        const valorParam = searchParams.get('valor');
+        const entradaParam = searchParams.get('entrada');
+
+        if (valorParam) {
+            const valor = parseFloat(valorParam);
+            setValorNumerico(valor);
+            setValorFormatado(formatarMoeda(valor));
+        }
+
+        if (entradaParam) {
+            const entrada = parseFloat(entradaParam);
+            setEntradaNumerica(entrada);
+            setEntradaFormatada(formatarMoeda(entrada));
+        }
+
         fetchTaxas().then(setTaxas);
     }, []);
 
@@ -83,7 +101,7 @@ export default function CalculadoraPage() {
                 />
             </div>
 
-            <div className="mb-8">
+            <div className="mb-6">
                 <label htmlFor="entrada" className="block mb-2 font-medium text-lg">
                     Entrada (R$)
                 </label>
@@ -164,6 +182,23 @@ export default function CalculadoraPage() {
                             </button>
                         )}
                     </div>
+
+                    <button
+                        onClick={() => {
+                            const url = `${window.location.origin}/calculadora?valor=${valorNumerico}&entrada=${entradaNumerica}`;
+                            navigator.clipboard.writeText(url);
+                            const toast = document.getElementById('toast');
+                            if (toast) {
+                                toast.classList.remove('hidden');
+                                setTimeout(() => {
+                                    toast.classList.add('hidden');
+                                }, 2000);
+                            }
+                        }}
+                        className="mt-6 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium py-2 px-4 rounded transition"
+                    >
+                        Compartilhar link com valores
+                    </button>
 
                     <div
                         id="toast"

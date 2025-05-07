@@ -1,6 +1,7 @@
 import { fetchProducts } from '@/lib/fetchProducts';
 import ProductCard from './components/ProductCard';
 import { Suspense } from 'react';
+import { TaxaProvider } from './context/TaxaContext';
 
 export default async function Home({
   searchParams,
@@ -25,20 +26,22 @@ export default async function Home({
   });
 
   return (
-    <main className="max-w-6xl mx-auto p-4">
-      <Suspense fallback={<p>Carregando produtos...</p>}>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 font-sans">
-          {produtosFiltrados.map((produto) => (
-            <ProductCard
-              key={produto.slug}
-              product={{
-                ...produto,
-                imagemPrincipal: produto.imagemPrincipal || '',
-              }}
-            />
-          ))}
-        </div>
-      </Suspense>
-    </main>
+    <TaxaProvider>
+      <main className="max-w-6xl mx-auto p-4">
+        <Suspense fallback={<p>Carregando produtos...</p>}>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 font-sans">
+            {produtosFiltrados.map((produto) => (
+              <ProductCard
+                key={produto.slug}
+                product={{
+                  ...produto,
+                  imagemPrincipal: produto.imagemPrincipal || '',
+                }}
+              />
+            ))}
+          </div>
+        </Suspense>
+      </main>
+    </TaxaProvider>
   );
 }
