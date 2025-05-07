@@ -6,9 +6,15 @@ export async function GET(req: Request) {
     const busca = searchParams.get('busca')?.toLowerCase() || '';
 
     const produtos = await fetchProducts();
-    const filtrados = produtos.filter((p) =>
-        p.titulo.toLowerCase().includes(busca)
-    );
+    const filtrados = produtos
+        .filter((p) =>
+            p.titulo.toLowerCase().includes(busca)
+        )
+        .map(({ slug, titulo, imagemPrincipal }) => ({
+            slug,
+            titulo,
+            imagemPrincipal,
+        }));
 
     return NextResponse.json(filtrados);
 }

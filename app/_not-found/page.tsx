@@ -2,20 +2,17 @@ import { fetchProducts } from '@/lib/fetchProducts';
 import ProductCard from '@/app/components/ProductCard';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home({
     searchParams,
 }: {
-    searchParams?: { categoria?: string; busca?: string };
+    searchParams?: { [key: string]: string | undefined };
 }) {
     const produtos = await fetchProducts();
 
-    const categoria = typeof searchParams?.categoria === 'string'
-        ? searchParams.categoria.toLowerCase()
-        : '';
-
-    const busca = typeof searchParams?.busca === 'string'
-        ? searchParams.busca.toLowerCase()
-        : '';
+    const categoria = searchParams?.categoria?.toLowerCase?.() || '';
+    const busca = searchParams?.busca?.toLowerCase?.() || '';
 
     const produtosFiltrados = produtos.filter((produto) => {
         const matchCategoria = categoria
