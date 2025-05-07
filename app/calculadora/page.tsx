@@ -1,93 +1,144 @@
-import { fetchTaxas } from '@/lib/fetchTaxas';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { useEffect, useState } from 'react';
+import { fetchTaxas, Taxa } from '@/lib/fetchTaxas';
 
-export default async function CalculadoraPage() {
-    const taxas = await fetchTaxas();
+export default function CalculadoraPage() {
+    const [valorFormatado, setValorFormatado] = useState('');
+    const [valorNumerico, setValorNumerico] = useState(0);
+    const [taxas, setTaxas] = useState<Taxa[]>([]);
+    const [mostrarTaxa, setMostrarTaxa] = useState(false);
+    const [verMais, setVerMais] = useState(false);
+
+    useEffect(() => {
+        fetchTaxas().then(setTaxas);
+    }, []);
+
+    function formatarMoeda(valor: number): string {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+        }).format(valor);
+    }
+
+    function calcularJurosAoMes(taxaTotal: number, parcelas: number): string {
+        const txDecimal = taxaTotal / 100;
+        const mensal = Math.pow(1 + txDecimal, 1 / parcelas) - 1;
+        return (mensal * 100).toFixed(2) + '% ao mês';
+    }
+
+    function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const input = e.target.value;
+        const apenasNumeros = input.replace(/\D/g, '');
+        const valor = parseFloat((parseInt(apenasNumeros || '0') / 100).toFixed(2));
+        setValorNumerico(valor);
+        setValorFormatado(formatarMoeda(valor));
+    }
+
+    async function copiarTexto(texto: string) {
+        await navigator.clipboard.writeText(texto);
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2000);
+        }
+    }
+
+    const taxasVisiveis = verMais ? taxas : taxas.slice(0, 12);
 
     return (
         <main className="max-w-3xl mx-auto p-6 font-sans text-black">
             <h1 className="text-3xl font-bold mb-6 text-center">Calculadora de Parcelamento</h1>
 
-            <form className="mb-8">
+            <div className="mb-8">
                 <label htmlFor="valor" className="block mb-2 font-medium text-lg">
-                    Valor líquido desejado (R$)
+                    Valor líquido desejado
                 </label>
                 <input
                     id="valor"
-                    name="valor"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="Digite o valor que deseja receber"
+                    type="text"
+                    inputMode="numeric"
+                    value={valorFormatado}
+                    onChange={handleInputChange}
+                    placeholder="R$ 0,00"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-            </form>
-
-            <div id="resultado">
-                <p className="mb-3 text-gray-600">Clique em uma linha para copiar os dados:</p>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full border border-gray-200 text-sm rounded-lg overflow-hidden">
-                        <thead className="bg-blue-100 text-gray-800">
-                            <tr>
-                                <th className="border px-4 py-2 text-left">Parcelas</th>
-                                <th className="border px-4 py-2 text-left">Taxa</th>
-                                <th className="border px-4 py-2 text-left">Valor da Parcela</th>
-                                <th className="border px-4 py-2 text-left">Total no Cartão</th>
-                                <th className="border px-4 py-2 text-left w-20">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-resultados" className="bg-white" />
-                    </table>
-                </div>
             </div>
 
-            <script
-                dangerouslySetInnerHTML={{
-                    __html: `
-            const input = document.getElementById('valor');
-            const tbody = document.getElementById('tabela-resultados');
-            const taxas = ${JSON.stringify(taxas)};
-            const formatar = (valor) => new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(valor);
+            {valorNumerico > 0 && (
+                <>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full border border-gray-200 text-sm rounded-lg overflow-hidden">
+                            <thead className="bg-blue-100 text-gray-800">
+                                <tr>
+                                    <th className="border px-4 py-2 text-left">Parcelas</th>
+                                    {mostrarTaxa && (
+                                        <th className="border px-4 py-2 text-left">Juros compostos</th>
+                                    )}
+                                    <th className="border px-4 py-2 text-left">Valor da Parcela</th>
+                                    <th className="border px-4 py-2 text-left">Total no Cartão</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white">
+                                {taxasVisiveis.map(({ parcelas, taxa }) => {
+                                    const taxaDecimal = taxa / 100;
+                                    const total = valorNumerico * (1 + taxaDecimal);
+                                    const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
+                                    const valorParcela = total / qtdParcelas;
+                                    const jurosMes = calcularJurosAoMes(taxa, qtdParcelas);
+                                    const texto = `${parcelas} de ${formatarMoeda(valorParcela)} - Total: ${formatarMoeda(total)}`;
 
-            input.addEventListener('input', () => {
-              const valorLiquido = parseFloat(input.value);
-              tbody.innerHTML = '';
+                                    return (
+                                        <tr
+                                            key={parcelas}
+                                            className="cursor-pointer hover:bg-blue-50"
+                                            onClick={() => copiarTexto(texto)}
+                                        >
+                                            <td className="border px-4 py-2">{parcelas}</td>
+                                            {mostrarTaxa && (
+                                                <td className="border px-4 py-2">{jurosMes}</td>
+                                            )}
+                                            <td className="border px-4 py-2">{formatarMoeda(valorParcela)}</td>
+                                            <td className="border px-4 py-2 font-semibold">{formatarMoeda(total)}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
 
-              if (!valorLiquido || valorLiquido <= 0) return;
+                    <div className="mt-3 text-center space-x-4">
+                        <button
+                            onClick={() => {
+                                setVerMais(!verMais);
+                                if (!verMais) setMostrarTaxa(false); // resetar visualização da taxa
+                            }}
+                            className="text-xs text-blue-600 underline hover:text-blue-800"
+                        >
+                            {verMais ? 'Mostrar menos parcelas' : 'Ver mais parcelas'}
+                        </button>
 
-              taxas.forEach(({ parcelas, taxa }, index) => {
-                const taxaDecimal = taxa / 100;
-                const valorTotal = valorLiquido / (1 - taxaDecimal);
-                const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
-                const valorParcela = valorTotal / qtdParcelas;
+                        {verMais && (
+                            <button
+                                onClick={() => setMostrarTaxa(!mostrarTaxa)}
+                                className="text-xs text-gray-500 underline hover:text-gray-800"
+                            >
+                                {mostrarTaxa ? 'Ocultar taxas' : 'Mostrar taxas'}
+                            </button>
+                        )}
+                    </div>
 
-                const texto = \`\${parcelas} de \${formatar(valorParcela)} - Total: \${formatar(valorTotal)}\`;
-
-                const row = document.createElement('tr');
-                row.innerHTML = \`
-                  <td class="border px-4 py-2">\${parcelas}</td>
-                  <td class="border px-4 py-2">\${taxa.toFixed(2)}%</td>
-                  <td class="border px-4 py-2">\${formatar(valorParcela)}</td>
-                  <td class="border px-4 py-2 font-semibold">\${formatar(valorTotal)}</td>
-                  <td class="border px-4 py-2 text-blue-600 hover:underline cursor-pointer" id="copy-\${index}">Copiar</td>
-                \`;
-                tbody.appendChild(row);
-
-                const copyBtn = row.querySelector('#copy-' + index);
-                copyBtn.addEventListener('click', async () => {
-                  await navigator.clipboard.writeText(texto);
-                  copyBtn.innerHTML = '✔ Copiado!';
-                  setTimeout(() => copyBtn.innerHTML = 'Copiar', 2000);
-                });
-              });
-            });
-          `,
-                }}
-            />
+                    {/* Toast */}
+                    <div
+                        id="toast"
+                        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-md hidden transition duration-300"
+                    >
+                        Copiado para a área de transferência!
+                    </div>
+                </>
+            )}
         </main>
     );
 }
