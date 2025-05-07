@@ -5,7 +5,9 @@ import { fetchTaxas, Taxa } from '@/lib/fetchTaxas';
 
 export default function CalculadoraPage() {
     const [valorFormatado, setValorFormatado] = useState('');
+    const [entradaFormatada, setEntradaFormatada] = useState('');
     const [valorNumerico, setValorNumerico] = useState(0);
+    const [entradaNumerica, setEntradaNumerica] = useState(0);
     const [taxas, setTaxas] = useState<Taxa[]>([]);
     const [mostrarTaxa, setMostrarTaxa] = useState(false);
     const [verMais, setVerMais] = useState(false);
@@ -27,12 +29,23 @@ export default function CalculadoraPage() {
         return (mensal * 100).toFixed(2) + '% ao mês';
     }
 
-    function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    function handleInput(
+        e: React.ChangeEvent<HTMLInputElement>,
+        tipo: 'valor' | 'entrada'
+    ) {
         const input = e.target.value;
         const apenasNumeros = input.replace(/\D/g, '');
-        const valor = parseFloat((parseInt(apenasNumeros || '0') / 100).toFixed(2));
-        setValorNumerico(valor);
-        setValorFormatado(formatarMoeda(valor));
+        const valor = parseFloat(
+            (parseInt(apenasNumeros || '0') / 100).toFixed(2)
+        );
+
+        if (tipo === 'valor') {
+            setValorNumerico(valor);
+            setValorFormatado(formatarMoeda(valor));
+        } else {
+            setEntradaNumerica(valor);
+            setEntradaFormatada(formatarMoeda(valor));
+        }
     }
 
     async function copiarTexto(texto: string) {
@@ -47,27 +60,45 @@ export default function CalculadoraPage() {
     }
 
     const taxasVisiveis = verMais ? taxas : taxas.slice(0, 12);
+    const restante = Math.max(0, valorNumerico - entradaNumerica);
 
     return (
         <main className="max-w-3xl mx-auto p-6 font-sans text-black">
-            <h1 className="text-3xl font-bold mb-6 text-center">Calculadora de Parcelamento</h1>
+            <h1 className="text-3xl font-bold mb-6 text-center">
+                Calculadora de Parcelamento
+            </h1>
 
-            <div className="mb-8">
+            <div className="mb-4">
                 <label htmlFor="valor" className="block mb-2 font-medium text-lg">
-                    Valor líquido desejado
+                    Valor total desejado
                 </label>
                 <input
                     id="valor"
                     type="text"
                     inputMode="numeric"
                     value={valorFormatado}
-                    onChange={handleInputChange}
+                    onChange={(e) => handleInput(e, 'valor')}
                     placeholder="R$ 0,00"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             </div>
 
-            {valorNumerico > 0 && (
+            <div className="mb-8">
+                <label htmlFor="entrada" className="block mb-2 font-medium text-lg">
+                    Entrada (R$)
+                </label>
+                <input
+                    id="entrada"
+                    type="text"
+                    inputMode="numeric"
+                    value={entradaFormatada}
+                    onChange={(e) => handleInput(e, 'entrada')}
+                    placeholder="R$ 0,00"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+
+            {valorNumerico > 0 && restante > 0 && (
                 <>
                     <div className="overflow-x-auto">
                         <table className="min-w-full border border-gray-200 text-sm rounded-lg overflow-hidden">
@@ -84,11 +115,11 @@ export default function CalculadoraPage() {
                             <tbody className="bg-white">
                                 {taxasVisiveis.map(({ parcelas, taxa }) => {
                                     const taxaDecimal = taxa / 100;
-                                    const total = valorNumerico * (1 + taxaDecimal);
+                                    const totalComTaxa = restante * (1 + taxaDecimal);
                                     const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
-                                    const valorParcela = total / qtdParcelas;
+                                    const valorParcela = totalComTaxa / qtdParcelas;
                                     const jurosMes = calcularJurosAoMes(taxa, qtdParcelas);
-                                    const texto = `${parcelas} de ${formatarMoeda(valorParcela)} - Total: ${formatarMoeda(total)}`;
+                                    const texto = `${parcelas} de ${formatarMoeda(valorParcela)} - Total no cartão: ${formatarMoeda(totalComTaxa)}`;
 
                                     return (
                                         <tr
@@ -100,8 +131,12 @@ export default function CalculadoraPage() {
                                             {mostrarTaxa && (
                                                 <td className="border px-4 py-2">{jurosMes}</td>
                                             )}
-                                            <td className="border px-4 py-2">{formatarMoeda(valorParcela)}</td>
-                                            <td className="border px-4 py-2 font-semibold">{formatarMoeda(total)}</td>
+                                            <td className="border px-4 py-2">
+                                                {formatarMoeda(valorParcela)}
+                                            </td>
+                                            <td className="border px-4 py-2 font-semibold">
+                                                {formatarMoeda(totalComTaxa)}
+                                            </td>
                                         </tr>
                                     );
                                 })}
@@ -113,7 +148,7 @@ export default function CalculadoraPage() {
                         <button
                             onClick={() => {
                                 setVerMais(!verMais);
-                                if (!verMais) setMostrarTaxa(false); // resetar visualização da taxa
+                                if (!verMais) setMostrarTaxa(false);
                             }}
                             className="text-xs text-blue-600 underline hover:text-blue-800"
                         >
@@ -130,7 +165,6 @@ export default function CalculadoraPage() {
                         )}
                     </div>
 
-                    {/* Toast */}
                     <div
                         id="toast"
                         className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-md hidden transition duration-300"
