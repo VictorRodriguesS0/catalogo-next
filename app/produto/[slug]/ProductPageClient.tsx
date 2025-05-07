@@ -4,8 +4,14 @@ import { useEffect, useState, useRef } from 'react';
 import GaleriaProduto from '@/app/components/GaleriaProduto';
 import { formatPreco } from '@/lib/formatPrice';
 import { fetchTaxas, Taxa } from '@/lib/fetchTaxas';
+import { Product } from '@/lib/fetchProducts';
 
-export default function ProductPageClient({ product, imagens }: any) {
+interface Props {
+    product: Product;
+    imagens: string[];
+}
+
+export default function ProductPageClient({ product, imagens }: Props) {
     const [showModal, setShowModal] = useState(false);
     const [taxas, setTaxas] = useState<Taxa[]>([]);
     const [mostrarTaxa, setMostrarTaxa] = useState(false);

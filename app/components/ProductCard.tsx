@@ -21,8 +21,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     const { taxa12x } = useTaxa();
 
     const mostrarParcelamento = precoNum > 50 && taxa12x !== null;
-    const valorTotalComJuros = precoNum * (1 + (taxa12x || 0) / 100);
-    const parcela12x = valorTotalComJuros / 12;
+    const totalComJuros = precoNum * (1 + (taxa12x || 0) / 100);
+    const parcela12x = totalComJuros / 12;
 
     const linkZap = `https://wa.me/${WHATSAPP_NUMERO}?text=Tenho%20interesse%20no%20produto%20${encodeURIComponent(product.titulo)}`;
 
@@ -37,13 +37,12 @@ export default function ProductCard({ product }: ProductCardProps) {
                     />
                 </div>
                 <div className="p-4">
-                    <h2 className="text-lg font-semibold text-black mb-1">
-                        {product.titulo}
-                    </h2>
+                    <h2 className="text-lg font-semibold text-black mb-1">{product.titulo}</h2>
                     {product.cor && (
                         <p className="text-sm text-gray-700 mb-1">Cor: {product.cor}</p>
                     )}
                     <p className="text-sm text-gray-700 mb-2">{product.categoria}</p>
+
                     <p className="text-xl font-bold text-green-600">
                         {product.promocao ? (
                             <>
@@ -61,8 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
                     {mostrarParcelamento && (
                         <p className="mt-1 text-sm text-gray-800 flex items-center gap-1">
-                            <span className="inline-block">💳</span>
-                            12x de <strong>{formatPreco(parcela12x)}</strong>
+                            <span>💳</span>12x de <strong>{formatPreco(parcela12x)}</strong>
                         </p>
                     )}
                 </div>
