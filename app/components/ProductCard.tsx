@@ -35,48 +35,50 @@ export default function ProductCard({ product }: ProductCardProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-            className="border rounded-xl overflow-hidden shadow-sm bg-white flex flex-col h-full transition"
+            className="border rounded-2xl overflow-hidden shadow-md bg-white flex flex-col h-full transition"
         >
             <Link href={`/produto/${product.slug}`} className="block flex-1">
-                <div className="relative aspect-square w-full bg-gray-100 flex items-center justify-center">
-                    {/* Selo de promoção */}
-                    {product.promocao && (
-                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md flex items-center gap-1 z-10">
-                            <span>🏷️</span> Promoção
+                <div className="relative aspect-square w-full bg-gray-50 flex items-center justify-center">
+                    {(product.promocao || product.destaque) && (
+                        <div className="absolute top-2 left-2 right-2 flex justify-between px-2 z-10">
+
+                            {product.promocao && (
+                                <div className="absolute top-2 right-2 z-10">
+                                    <div className="bg-red-600 text-white text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded shadow-sm">
+                                        🏷️ Promoção
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
                     )}
 
-                    {/* Selo de destaque */}
-                    {product.destaque && (
-                        <div className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow-md flex items-center gap-1 z-10">
-                            <span>⭐</span> Destaque
-                        </div>
-                    )}
 
                     <img
                         src={imagem}
                         alt={product.titulo}
-                        className="max-h-full max-w-full object-contain"
+                        loading="lazy"
+                        className="max-h-full max-w-full object-cover transition-all duration-200"
                     />
                 </div>
 
                 <div className="p-4">
-                    <h2 className="text-lg font-semibold text-black mb-1">
+                    <h2 className="text-base font-semibold text-black mb-1 line-clamp-2">
                         {product.titulo}
                     </h2>
 
                     {product.cor && (
-                        <p className="text-sm text-gray-700 mb-1">Cor: {product.cor}</p>
+                        <p className="text-xs text-gray-600 mb-1">Cor: {product.cor}</p>
                     )}
 
-                    <p className="text-sm text-gray-700 mb-2">{product.categoria}</p>
+                    <p className="text-xs text-gray-500 mb-2">{product.categoria}</p>
 
-                    <p className="text-xl font-bold text-green-600">
+                    <p className="text-lg font-bold text-green-600">
                         {product.promocao ? (
                             <>
                                 {formatPreco(product.promocao)}{' '}
                                 <span className="text-sm">no pix</span>{' '}
-                                <span className="text-sm line-through text-gray-500">
+                                <span className="text-xs line-through text-gray-400 ml-1">
                                     {formatPreco(product.valor)}
                                 </span>
                             </>
@@ -89,9 +91,8 @@ export default function ProductCard({ product }: ProductCardProps) {
                     </p>
 
                     {mostrarParcelamento && (
-                        <p className="mt-1 text-sm text-gray-800 flex items-center gap-1">
-                            <span>💳</span>12x de{' '}
-                            <strong>{formatPreco(parcela12x)}</strong>
+                        <p className="mt-1 text-xs text-gray-700 flex items-center gap-1">
+                            💳 12x de <strong>{formatPreco(parcela12x)}</strong>
                         </p>
                     )}
                 </div>
@@ -102,7 +103,8 @@ export default function ProductCard({ product }: ProductCardProps) {
                     href={linkZap}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full text-center bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-4 rounded transition"
+                    title="Fale agora no WhatsApp"
+                    className="block w-full text-center bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-4 rounded-md transition"
                 >
                     Comprar no WhatsApp
                 </a>
