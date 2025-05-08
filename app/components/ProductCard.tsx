@@ -29,18 +29,27 @@ export default function ProductCard({ product }: ProductCardProps) {
     return (
         <div className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition bg-white flex flex-col h-full">
             <Link href={`/produto/${product.slug}`} className="block flex-1">
-                <div className="aspect-square w-full bg-gray-100 flex items-center justify-center">
+                <div className="relative aspect-square w-full bg-gray-100 flex items-center justify-center">
+                    {/* Selo flutuante de promoção */}
+                    {product.promocao && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md flex items-center gap-1">
+                            <span>🏷️</span> Promoção
+                        </div>
+                    )}
                     <img
                         src={imagem}
                         alt={product.titulo}
                         className="max-h-full max-w-full object-contain"
                     />
                 </div>
+
                 <div className="p-4">
                     <h2 className="text-lg font-semibold text-black mb-1">{product.titulo}</h2>
+
                     {product.cor && (
                         <p className="text-sm text-gray-700 mb-1">Cor: {product.cor}</p>
                     )}
+
                     <p className="text-sm text-gray-700 mb-2">{product.categoria}</p>
 
                     <p className="text-xl font-bold text-green-600">
