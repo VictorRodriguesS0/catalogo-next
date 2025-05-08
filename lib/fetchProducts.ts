@@ -9,6 +9,7 @@ export interface Product {
     cor?: string;
     marca?: string;
     categoria: string;
+    subcategoria?: string;
     imagemPrincipal?: string;
     imagem2?: string;
     imagem3?: string;
@@ -28,6 +29,7 @@ interface RawProduct {
     cor?: string;
     marca?: string;
     categoria: string;
+    subcategoria?: string;
     imagemPrincipal?: string;
     imagem2?: string;
     imagem3?: string;
@@ -45,7 +47,7 @@ function slugify(text: string): string {
     return text
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[̀-ͯ]/g, '')
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
 }
@@ -83,6 +85,7 @@ export async function fetchProducts(): Promise<Product[]> {
                             cor: p.cor?.trim() || undefined,
                             marca: p.marca?.trim() || undefined,
                             categoria: p.categoria.trim(),
+                            subcategoria: p.subcategoria?.trim() || undefined,
                             imagemPrincipal: p.imagemPrincipal?.trim(),
                             imagem2: p.imagem2?.trim(),
                             imagem3: p.imagem3?.trim(),
