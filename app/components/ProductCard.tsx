@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { formatPreco } from '@/lib/formatPrice';
 import { Product } from '@/lib/fetchProducts';
 import { WHATSAPP_NUMERO } from '@/lib/whatsapp';
-import { useTaxa } from '@/app/context/TaxaContext';
+import { useCatalogo } from '@/app/context/CatalogoContext';
+import { motion } from 'framer-motion';
 
 interface ProductCardProps {
     product: Product;
@@ -14,28 +15,44 @@ export default function ProductCard({ product }: ProductCardProps) {
     const imagem = product.imagemPrincipal || '/fallback.png';
     const precoBase = product.promocao || product.valor;
 
-    const precoNum = typeof precoBase === 'string'
-        ? parseFloat(precoBase.replace(/[^\d,]/g, '').replace(',', '.'))
-        : precoBase;
+    const precoNum =
+        typeof precoBase === 'string'
+            ? parseFloat(precoBase.replace(/[^\d,]/g, '').replace(',', '.'))
+            : precoBase;
 
-    const { taxa12x } = useTaxa();
+    const { taxa12x } = useCatalogo();
 
     const mostrarParcelamento = precoNum > 50 && taxa12x !== null;
     const totalComJuros = precoNum * (1 + (taxa12x || 0) / 100);
     const parcela12x = totalComJuros / 12;
 
-    const linkZap = `https://wa.me/${WHATSAPP_NUMERO}?text=Tenho%20interesse%20no%20produto%20${encodeURIComponent(product.titulo)}`;
+    const linkZap = `https://wa.me/${WHATSAPP_NUMERO}?text=Tenho%20interesse%20no%20produto%20${encodeURIComponent(
+        product.titulo
+    )}`;
 
     return (
-        <div className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition bg-white flex flex-col h-full">
+        <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            className="border rounded-xl overflow-hidden shadow-sm bg-white flex flex-col h-full transition"
+        >
             <Link href={`/produto/${product.slug}`} className="block flex-1">
                 <div className="relative aspect-square w-full bg-gray-100 flex items-center justify-center">
-                    {/* Selo flutuante de promoção */}
+                    {/* Selo de promoção */}
                     {product.promocao && (
-                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md flex items-center gap-1">
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md flex items-center gap-1 z-10">
                             <span>🏷️</span> Promoção
                         </div>
                     )}
+
+                    {/* Selo de destaque */}
+                    {product.destaque && (
+                        <div className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow-md flex items-center gap-1 z-10">
+                            <span>⭐</span> Destaque
+                        </div>
+                    )}
+
                     <img
                         src={imagem}
                         alt={product.titulo}
@@ -44,7 +61,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </div>
 
                 <div className="p-4">
-                    <h2 className="text-lg font-semibold text-black mb-1">{product.titulo}</h2>
+                    <h2 className="text-lg font-semibold text-black mb-1">
+                        {product.titulo}
+                    </h2>
 
                     {product.cor && (
                         <p className="text-sm text-gray-700 mb-1">Cor: {product.cor}</p>
@@ -55,21 +74,24 @@ export default function ProductCard({ product }: ProductCardProps) {
                     <p className="text-xl font-bold text-green-600">
                         {product.promocao ? (
                             <>
-                                {formatPreco(product.promocao)} <span className="text-sm">no pix</span>{' '}
+                                {formatPreco(product.promocao)}{' '}
+                                <span className="text-sm">no pix</span>{' '}
                                 <span className="text-sm line-through text-gray-500">
                                     {formatPreco(product.valor)}
                                 </span>
                             </>
                         ) : (
                             <>
-                                {formatPreco(product.valor)} <span className="text-sm">no pix</span>
+                                {formatPreco(product.valor)}{' '}
+                                <span className="text-sm">no pix</span>
                             </>
                         )}
                     </p>
 
                     {mostrarParcelamento && (
                         <p className="mt-1 text-sm text-gray-800 flex items-center gap-1">
-                            <span>💳</span>12x de <strong>{formatPreco(parcela12x)}</strong>
+                            <span>💳</span>12x de{' '}
+                            <strong>{formatPreco(parcela12x)}</strong>
                         </p>
                     )}
                 </div>
@@ -85,6 +107,6 @@ export default function ProductCard({ product }: ProductCardProps) {
                     Comprar no WhatsApp
                 </a>
             </div>
-        </div>
+        </motion.div>
     );
 }

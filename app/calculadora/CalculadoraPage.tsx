@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTaxa } from '@/app/context/TaxaContext';
+import { useCatalogo } from '@/app/context/CatalogoContext';
 
 export default function CalculadoraPage() {
     const searchParams = useSearchParams();
-    const { todasTaxas } = useTaxa();
+    const { todasTaxas } = useCatalogo();
 
     const [valorFormatado, setValorFormatado] = useState('');
     const [entradaFormatada, setEntradaFormatada] = useState('');

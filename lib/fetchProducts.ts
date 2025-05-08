@@ -4,7 +4,10 @@ export interface Product {
     titulo: string;
     valor: string;
     promocao?: string;
+    emPromocao: boolean;
+    destaque: boolean;
     cor?: string;
+    marca?: string;
     categoria: string;
     imagemPrincipal?: string;
     imagem2?: string;
@@ -12,7 +15,27 @@ export interface Product {
     imagem4?: string;
     descricao?: string;
     inativo?: string;
+    ram?: string;
+    armazenamento?: string;
     slug: string;
+}
+
+interface RawProduct {
+    titulo: string;
+    valor: string;
+    promocao?: string;
+    destaque?: string;
+    cor?: string;
+    marca?: string;
+    categoria: string;
+    imagemPrincipal?: string;
+    imagem2?: string;
+    imagem3?: string;
+    imagem4?: string;
+    descricao?: string;
+    inativo?: string;
+    ram?: string;
+    armazenamento?: string;
 }
 
 const CSV_URL =
@@ -36,9 +59,9 @@ export async function fetchProducts(): Promise<Product[]> {
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
-                const data = results.data as Omit<Product, 'slug'>[];
+                const data = results.data as RawProduct[];
 
-                const validProducts = data
+                const validProducts: Product[] = data
                     .filter(
                         (p) =>
                             p.titulo &&
@@ -46,10 +69,30 @@ export async function fetchProducts(): Promise<Product[]> {
                             p.categoria &&
                             String(p.inativo).toLowerCase() !== 'true'
                     )
-                    .map((p) => ({
-                        ...p,
-                        slug: slugify(p.titulo),
-                    }));
+                    .map((p) => {
+                        const promocao = p.promocao?.trim() || undefined;
+                        const destaque = String(p.destaque || '').toLowerCase() === 'true';
+
+                        return {
+                            ...p,
+                            titulo: p.titulo.trim(),
+                            valor: p.valor.trim(),
+                            promocao,
+                            emPromocao: !!promocao,
+                            destaque,
+                            cor: p.cor?.trim() || undefined,
+                            marca: p.marca?.trim() || undefined,
+                            categoria: p.categoria.trim(),
+                            imagemPrincipal: p.imagemPrincipal?.trim(),
+                            imagem2: p.imagem2?.trim(),
+                            imagem3: p.imagem3?.trim(),
+                            imagem4: p.imagem4?.trim(),
+                            descricao: p.descricao?.trim(),
+                            ram: p.ram?.trim(),
+                            armazenamento: p.armazenamento?.trim(),
+                            slug: slugify(p.titulo),
+                        };
+                    });
 
                 resolve(validProducts);
             },

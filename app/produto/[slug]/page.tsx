@@ -5,8 +5,10 @@ import ProductPageClient from './ProductPageClient';
 export default async function ProductPage({
     params,
 }: {
-    params: { slug: string };
+    params: { slug?: string };
 }) {
+    if (!params?.slug) return notFound();
+
     const products = await fetchProducts();
     const product = products.find((p) => p.slug === params.slug);
 
