@@ -1,3 +1,5 @@
+// Atualização do ProductPageClient.tsx com correção: mostrar taxas somente quando "mostrarTaxa" for verdadeiro
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -16,7 +18,6 @@ export default function ProductPageClient({ product, imagens }: Props) {
     const [taxas, setTaxas] = useState<Taxa[]>([]);
     const [mostrarTaxa, setMostrarTaxa] = useState(false);
     const [verMais, setVerMais] = useState(false);
-
     const modalRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -24,11 +25,7 @@ export default function ProductPageClient({ product, imagens }: Props) {
     }, []);
 
     useEffect(() => {
-        if (showModal) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
+        document.body.style.overflow = showModal ? 'hidden' : '';
         return () => {
             document.body.style.overflow = '';
         };
@@ -43,10 +40,7 @@ export default function ProductPageClient({ product, imagens }: Props) {
     }, []);
 
     const preco = product.promocao || product.valor;
-    const precoNum = typeof preco === 'string'
-        ? parseFloat(preco.replace(/[^\d,]/g, '').replace(',', '.'))
-        : preco;
-
+    const precoNum = parseFloat(preco.replace(/[^\d,]/g, '').replace(',', '.'));
     const taxa12x = taxas.find((t) => t.parcelas.replace('x', '') === '12')?.taxa || 0;
     const total12x = precoNum * (1 + taxa12x / 100);
     const parcela12x = total12x / 12;
@@ -72,19 +66,54 @@ export default function ProductPageClient({ product, imagens }: Props) {
     };
 
     return (
-        <main className="p-4 md:p-6 max-w-5xl mx-auto font-sans overflow-x-hidden">
-            <div className="flex flex-col md:flex-row gap-8">
+        <main className="p-4 md:p-6 max-w-6xl mx-auto font-sans">
+            <div className="flex flex-col md:flex-row gap-10">
                 <div className="flex-1 max-w-full md:max-w-md">
                     <GaleriaProduto imagens={imagens} titulo={product.titulo} />
                 </div>
-                <div className="flex-1">
-                    <h1 className="text-3xl md:text-4xl font-extrabold mb-4 text-gray-900 leading-tight">{product.titulo}</h1>
-                    {product.cor && <p className="text-sm text-gray-500 mb-1">Cor: {product.cor}</p>}
-                    <p className="text-sm text-gray-500 mb-4">Categoria: {product.categoria}</p>
 
-                    <p className="text-2xl md:text-3xl font-bold text-green-600 mb-1">
-                        {formatPreco(preco)} <span className="text-base">no pix</span>
-                    </p>
+                <div className="flex-1">
+                    {(product.promocao || product.destaque) && (
+                        <div className="mb-2 flex flex-wrap gap-2">
+                            {product.destaque && (
+                                <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow-md">
+                                    ⭐ Destaque
+                                </span>
+                            )}
+                            {product.promocao && (
+                                <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md">
+                                    🏷️ Promoção
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    <h1 className="text-3xl md:text-4xl font-extrabold mb-2 text-gray-900 leading-tight">
+                        {product.titulo}
+                    </h1>
+
+                    <div className="text-sm text-gray-600 mb-3 space-y-1">
+                        {product.marca && <p><strong>Marca:</strong> {product.marca}</p>}
+                        {product.cor && <p><strong>Cor:</strong> {product.cor}</p>}
+                        {product.armazenamento && <p><strong>Armazenamento:</strong> {product.armazenamento}</p>}
+                        {product.ram && <p><strong>Memória RAM:</strong> {product.ram}</p>}
+                        <p><strong>Categoria:</strong> {product.categoria}</p>
+                    </div>
+
+                    {product.promocao ? (
+                        <>
+                            <p className="text-2xl font-bold text-red-600 mb-1">
+                                {formatPreco(product.promocao)} <span className="text-base">no pix</span>
+                            </p>
+                            <p className="text-sm line-through text-gray-500 mb-2">
+                                De: {formatPreco(product.valor)}
+                            </p>
+                        </>
+                    ) : (
+                        <p className="text-2xl font-bold text-green-600 mb-3">
+                            {formatPreco(product.valor)} <span className="text-base">no pix</span>
+                        </p>
+                    )}
 
                     {precoNum > 50 && (
                         <p className="text-sm text-gray-800 mb-3 flex items-center gap-1">
@@ -92,6 +121,11 @@ export default function ProductPageClient({ product, imagens }: Props) {
                             12x de <strong>{formatarMoeda(parcela12x)}</strong>
                         </p>
                     )}
+
+                    <div className="text-sm text-blue-700 bg-blue-50 rounded-md px-3 py-2 mb-4">
+                        Entregamos no mesmo dia para <strong>Brasília e entorno</strong> via motoboy 🚚 <br />
+                        <span className="text-gray-600">(Consulte o valor do frete pelo WhatsApp)</span>
+                    </div>
 
                     <button
                         onClick={() => setShowModal(true)}
