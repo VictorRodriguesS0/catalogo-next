@@ -2,8 +2,8 @@ import Papa from 'papaparse';
 
 export interface Product {
     titulo: string;
-    valor: string;
-    promocao?: string;
+    valor: number;
+    promocao?: number;
     emPromocao: boolean;
     destaque: boolean;
     cor?: string;
@@ -52,6 +52,19 @@ function slugify(text: string): string {
         .replace(/(^-|-$)+/g, '');
 }
 
+function parseValor(raw: string | undefined): number | undefined {
+    if (!raw) return undefined;
+
+    const cleaned = raw
+        .replace(/[^\d.,]/g, '') // remove tudo exceto números, ponto e vírgula
+        .replace(/\.(?=\d{3})/g, '') // remove pontos de milhar (ex: 1.299,99 → 1299,99)
+        .replace(',', '.'); // converte decimal final
+
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? undefined : parsed;
+}
+
+
 export async function fetchProducts(): Promise<Product[]> {
     const response = await fetch(CSV_URL);
     const csvText = await response.text();
@@ -72,16 +85,16 @@ export async function fetchProducts(): Promise<Product[]> {
                             String(p.inativo).toLowerCase() !== 'true'
                     )
                     .map((p) => {
-                        const promocao = p.promocao?.trim() || undefined;
-                        const destaque = String(p.destaque || '').toLowerCase() === 'true';
+                        const promocaoNum = parseValor(p.promocao);
+                        const valorNum = parseValor(p.valor) ?? 0;
 
                         return {
                             ...p,
                             titulo: p.titulo.trim(),
-                            valor: p.valor.trim(),
-                            promocao,
-                            emPromocao: !!promocao,
-                            destaque,
+                            valor: valorNum,
+                            promocao: promocaoNum,
+                            emPromocao: !!promocaoNum,
+                            destaque: String(p.destaque || '').toLowerCase() === 'true',
                             cor: p.cor?.trim() || undefined,
                             marca: p.marca?.trim() || undefined,
                             categoria: p.categoria.trim(),

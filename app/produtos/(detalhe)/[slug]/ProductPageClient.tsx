@@ -1,5 +1,3 @@
-// Atualização do ProductPageClient.tsx com correção: mostrar taxas somente quando "mostrarTaxa" for verdadeiro
-
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -39,10 +37,10 @@ export default function ProductPageClient({ product, imagens }: Props) {
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    const preco = product.promocao || product.valor;
-    const precoNum = parseFloat(preco.replace(/[^\d,]/g, '').replace(',', '.'));
+    // Corrigido: uso de number seguro
+    const preco = product.promocao ?? product.valor ?? 0;
     const taxa12x = taxas.find((t) => t.parcelas.replace('x', '') === '12')?.taxa || 0;
-    const total12x = precoNum * (1 + taxa12x / 100);
+    const total12x = preco * (1 + taxa12x / 100);
     const parcela12x = total12x / 12;
 
     const taxasVisiveis = verMais ? taxas : taxas.slice(0, 12);
@@ -115,7 +113,7 @@ export default function ProductPageClient({ product, imagens }: Props) {
                         </p>
                     )}
 
-                    {precoNum > 50 && (
+                    {preco > 50 && (
                         <p className="text-sm text-gray-800 mb-3 flex items-center gap-1">
                             <span>💳</span>
                             12x de <strong>{formatarMoeda(parcela12x)}</strong>
@@ -152,6 +150,7 @@ export default function ProductPageClient({ product, imagens }: Props) {
                 </div>
             </div>
 
+            {/* Modal de parcelamento */}
             {showModal && (
                 <div
                     ref={modalRef}
@@ -183,7 +182,7 @@ export default function ProductPageClient({ product, imagens }: Props) {
                                 <tbody className="bg-white">
                                     {taxasVisiveis.map(({ parcelas, taxa }) => {
                                         const taxaDecimal = taxa / 100;
-                                        const totalComTaxa = precoNum * (1 + taxaDecimal);
+                                        const totalComTaxa = preco * (1 + taxaDecimal);
                                         const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
                                         const valorParcela = totalComTaxa / qtdParcelas;
                                         const jurosMes = calcularJurosAoMes(taxa, qtdParcelas);

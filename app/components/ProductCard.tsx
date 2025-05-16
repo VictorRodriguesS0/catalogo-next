@@ -15,13 +15,8 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, visualizacao = 'grade' }: ProductCardProps) {
     const imagem = product.imagemPrincipal || '/fallback.png';
-    const precoBase = product.promocao || product.valor;
 
-    const precoNum =
-        typeof precoBase === 'string'
-            ? parseFloat(precoBase.replace(/[^\d,]/g, '').replace(',', '.'))
-            : precoBase;
-
+    const precoNum = product.promocao ?? product.valor ?? 0;
     const { taxa12x } = useCatalogo();
 
     const mostrarParcelamento = precoNum > 50 && taxa12x !== null;
@@ -45,8 +40,8 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
             {/* Imagem */}
             <div
                 className={`relative ${isLista
-                        ? 'w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 self-center'
-                        : 'w-full h-48 sm:h-56'
+                    ? 'w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 self-center'
+                    : 'w-full h-48 sm:h-56'
                     } bg-gray-50 flex items-center justify-center`}
             >
                 {product.promocao && (

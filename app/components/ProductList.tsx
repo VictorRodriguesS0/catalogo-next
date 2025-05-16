@@ -5,6 +5,9 @@ import ProductCard from './ProductCard';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { filtrarProdutos } from '@/lib/filtrarProdutos';
+import { aliasesCategorias } from '@/lib/aliasesCategorias';
+import { Product } from '@/lib/fetchProducts';
+
 
 export default function ProductList() {
     const { produtos } = useCatalogo();
@@ -23,35 +26,101 @@ export default function ProductList() {
         promocao: searchParams.get('promocao') === 'true',
     };
 
+    const ordenarParam = searchParams.get('ordenar') || '';
+    const ordenarMap: Record<string, string> = {
+        'menor-preco': 'preco-asc',
+        'maior-preco': 'preco-desc',
+        'a-z': 'az',
+        'z-a': 'za',
+    };
+    const ordenar = ordenarMap[ordenarParam] || '';
+
     const produtosFiltrados = filtrarProdutos(produtos, filtros);
 
-    return produtosFiltrados.length > 0 ? (
-        <div
-            className={
-                visualizacao === 'grade'
-                    ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 font-sans'
-                    : 'flex flex-col gap-4 font-sans'
+    function getValorParaOrdenacao(produto: Product): number {
+        const valor = produto.promocao ?? produto.valor;
+        return Number(valor);
+    }
+
+
+    function ordenarProdutos(lista: Product[], criterio: string) {
+        return [...lista].sort((a, b) => {
+            const valorA = getValorParaOrdenacao(a);
+            const valorB = getValorParaOrdenacao(b);
+
+            switch (criterio) {
+                case 'preco-asc':
+                    if (isNaN(valorA)) return 1;
+                    if (isNaN(valorB)) return -1;
+                    return valorA - valorB;
+
+                case 'preco-desc':
+                    if (isNaN(valorA)) return 1;
+                    if (isNaN(valorB)) return -1;
+                    return valorB - valorA;
+
+                case 'az':
+                    return a.titulo.localeCompare(b.titulo);
+                case 'za':
+                    return b.titulo.localeCompare(a.titulo);
+                default:
+                    return 0;
             }
-        >
-            <AnimatePresence>
-                {produtosFiltrados.map((produto) => (
-                    <motion.div
-                        key={produto.slug}
-                        initial={{ opacity: 0, scale: 0.96 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
+        });
+    }
+
+
+
+
+    const produtosOrdenados = ordenarProdutos(produtosFiltrados, ordenar);
+
+    const produtosPorCategoria = produtosOrdenados.reduce(
+        (acc: Record<string, typeof produtosOrdenados>, produto) => {
+            const categoria = produto.categoria || 'Outros';
+            if (!acc[categoria]) acc[categoria] = [];
+            acc[categoria].push(produto);
+            return acc;
+        },
+        {}
+    );
+
+    return produtosOrdenados.length > 0 ? (
+        <div className="space-y-10 font-sans">
+            {Object.entries(produtosPorCategoria).map(([categoria, produtos]) => (
+                <div key={categoria}>
+                    <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                        {aliasesCategorias[categoria.toLowerCase()] || categoria}
+                    </h2>
+
+                    <div
+                        className={
+                            visualizacao === 'grade'
+                                ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
+                                : 'flex flex-col gap-4'
+                        }
                     >
-                        <ProductCard
-                            product={{
-                                ...produto,
-                                imagemPrincipal: produto.imagemPrincipal || '',
-                            }}
-                            visualizacao={visualizacao}
-                        />
-                    </motion.div>
-                ))}
-            </AnimatePresence>
+                        <AnimatePresence>
+                            {produtos.map((produto) => (
+                                <motion.div
+                                    key={produto.slug}
+                                    initial={{ opacity: 0, scale: 0.96 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <ProductCard
+                                        product={{
+                                            ...produto,
+                                            imagemPrincipal: produto.imagemPrincipal || '',
+                                        }}
+                                        visualizacao={visualizacao}
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                </div>
+            ))}
         </div>
     ) : (
         <p className="text-center text-gray-600 text-sm">
