@@ -1,12 +1,13 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function FilterBar() {
     const searchParams = useSearchParams();
+    const pathname = usePathname();
     const router = useRouter();
     const { marcas, cores } = useCatalogo();
 
@@ -17,6 +18,7 @@ export default function FilterBar() {
     const [destaque, setDestaque] = useState(false);
     const [promocao, setPromocao] = useState(false);
 
+    // Recarregar filtros da URL ao abrir
     useEffect(() => {
         const marcas = searchParams.getAll('marca');
         const cores = searchParams.getAll('cor');
@@ -31,6 +33,7 @@ export default function FilterBar() {
         setPromocao(promocao);
     }, [searchParams]);
 
+    // Atualizar URL ao mudar ordenação
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
         if (ordenar) {
@@ -38,7 +41,8 @@ export default function FilterBar() {
         } else {
             params.delete('ordenar');
         }
-        router.push(`/?${params.toString()}`);
+
+        router.replace(`${pathname}?${params.toString()}`);
     }, [ordenar]);
 
     const toggle = (value: string, list: string[], setList: (v: string[]) => void) => {
@@ -67,12 +71,12 @@ export default function FilterBar() {
         }
 
 
-        router.push(`/?${params.toString()}`);
+        router.replace(`${pathname}?${params.toString()}`);
         setMostrarFiltros(false);
     };
 
     const limparFiltros = () => {
-        router.push('/');
+        router.replace(pathname); // Mantém a rota atual, sem query
         setMostrarFiltros(false);
     };
 

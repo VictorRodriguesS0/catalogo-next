@@ -35,43 +35,38 @@ export default function ProductCard({ product }: ProductCardProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-            className="border rounded-2xl overflow-hidden shadow-md bg-white flex flex-col h-full transition"
+            className="flex flex-col h-full w-full border border-gray-200 hover:border-gray-400 rounded-2xl overflow-hidden shadow-sm bg-white transition"
         >
-            <Link href={`/produto/${product.slug}`} className="block flex-1">
-                <div className="relative aspect-square w-full bg-gray-50 flex items-center justify-center">
-                    {(product.promocao || product.destaque) && (
-                        <div className="absolute top-2 left-2 right-2 flex justify-between px-2 z-10">
-
-                            {product.promocao && (
-                                <div className="absolute top-2 right-2 z-10">
-                                    <div className="bg-red-600 text-white text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded shadow-sm">
-                                        🏷️ Promoção
-                                    </div>
-                                </div>
-                            )}
-
+            <Link href={`/produto/${product.slug}`} className="flex-1 flex flex-col">
+                <div className="relative aspect-[4/3] w-full bg-gray-50 flex items-center justify-center">
+                    {product.promocao && (
+                        <div className="absolute top-2 right-2 z-10">
+                            <div className="bg-red-600 text-white text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded shadow-sm">
+                                🏷️ Promoção
+                            </div>
                         </div>
                     )}
-
 
                     <img
                         src={imagem}
                         alt={product.titulo}
                         loading="lazy"
-                        className="max-h-full max-w-full object-cover transition-all duration-200"
+                        className="w-full h-full object-cover transition-all duration-200 rounded-t-xl"
                     />
                 </div>
 
-                <div className="p-4">
-                    <h2 className="text-base font-semibold text-black mb-1 line-clamp-2">
+                <div className="p-4 flex flex-col gap-1">
+                    <h2 className="text-base font-semibold text-black line-clamp-2 min-h-[48px]">
                         {product.titulo}
                     </h2>
 
-                    {product.cor && (
-                        <p className="text-xs text-gray-600 mb-1">Cor: {product.cor}</p>
-                    )}
+                    <p className="text-xs text-gray-600 min-h-[18px]">
+                        {product.cor ? `Cor: ${product.cor}` : '\u00A0'}
+                    </p>
 
-                    <p className="text-xs text-gray-500 mb-2">{product.categoria}</p>
+                    <p className="text-xs text-gray-500 min-h-[18px]">
+                        {product.categoria || '\u00A0'}
+                    </p>
 
                     <p className="text-lg font-bold text-green-600">
                         {product.promocao ? (
@@ -90,10 +85,12 @@ export default function ProductCard({ product }: ProductCardProps) {
                         )}
                     </p>
 
-                    {mostrarParcelamento && (
-                        <p className="mt-1 text-xs text-gray-700 flex items-center gap-1">
+                    {mostrarParcelamento ? (
+                        <p className="text-xs text-gray-700 flex items-center gap-1 min-h-[18px]">
                             💳 12x de <strong>{formatPreco(parcela12x)}</strong>
                         </p>
+                    ) : (
+                        <div className="min-h-[18px]" />
                     )}
                 </div>
             </Link>
