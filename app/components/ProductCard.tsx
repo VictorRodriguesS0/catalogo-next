@@ -44,7 +44,9 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
         >
             {/* Imagem */}
             <div
-                className={`relative ${isLista ? 'w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 self-center' : 'aspect-[4/3] w-full'
+                className={`relative ${isLista
+                        ? 'w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 self-center'
+                        : 'w-full h-48 sm:h-56'
                     } bg-gray-50 flex items-center justify-center`}
             >
                 {product.promocao && (
@@ -59,8 +61,8 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
                     src={imagem}
                     alt={product.titulo}
                     fill
-                    sizes={isLista ? '160px' : '100%'}
-                    className="object-cover"
+                    sizes={isLista ? '160px' : '(max-width: 768px) 50vw, 25vw'}
+                    className={`transition-all duration-200 ${isLista ? 'object-cover' : 'object-contain'}`}
                 />
             </div>
 
