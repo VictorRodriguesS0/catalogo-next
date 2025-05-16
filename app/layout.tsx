@@ -3,7 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "./components/Footer";
-import { CatalogoProvider } from "@/app/context/CatalogoContext"; // IMPORTANTE
+import { CatalogoProvider } from "@/app/context/CatalogoContext";
+import Breadcrumbs from "@/app/components/Breadcrumbs";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +35,12 @@ export default function RootLayout({
       >
         <CatalogoProvider>
           <Header />
-          {children}
+          <main className="max-w-6xl mx-auto p-4">
+            <Suspense fallback={null}>
+              <Breadcrumbs />
+            </Suspense>
+            {children}
+          </main>
           <Footer />
         </CatalogoProvider>
       </body>

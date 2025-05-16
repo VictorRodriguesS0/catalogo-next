@@ -6,6 +6,7 @@ import ProductList from '../components/ProductList';
 export default function ProdutosPage() {
     return (
         <main className="max-w-6xl mx-auto p-4 space-y-6">
+
             <Suspense fallback={<div className="h-10 bg-gray-100 rounded animate-pulse" />}>
                 <ProdutosHeader />
             </Suspense>

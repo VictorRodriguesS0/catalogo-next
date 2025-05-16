@@ -73,7 +73,7 @@ function DropdownCategoria({
                                         key={produto.slug}
                                         className="flex items-center gap-4 border rounded-md p-3 hover:shadow-md transition"
                                     >
-                                        <Link href={`/produto/${produto.slug}`} className="flex items-center gap-4 w-full">
+                                        <Link href={`/${produto.slug}`} className="flex items-center gap-4 w-full">
                                             <div className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded overflow-hidden">
                                                 {produto.imagemPrincipal && (
                                                     <Image

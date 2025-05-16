@@ -87,7 +87,7 @@ export default function SearchBox() {
         setHighlightedIndex(-1);
         setSugestoes([]);
         setBuscou(false);
-        router.push(`/produto/${slug}`);
+        router.push(`/produtos/${slug}`);
     }
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {

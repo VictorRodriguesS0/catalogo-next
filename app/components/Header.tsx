@@ -68,7 +68,7 @@ export default function Header() {
                         {categorias.map((categoria) => (
                             <li key={categoria}>
                                 <Link
-                                    href={`/?categoria=${encodeURIComponent(categoria)}`}
+                                    href={`/produtos?categoria=${encodeURIComponent(categoria)}`}
                                     className="block px-4 py-2 hover:bg-gray-100 text-sm transition-colors duration-200"
                                 >
                                     {categoria}
@@ -89,7 +89,7 @@ export default function Header() {
                         {principaisCategorias.map((categoria) => (
                             <li key={categoria}>
                                 <Link
-                                    href={`/?categoria=${encodeURIComponent(categoria)}`}
+                                    href={`produtos?categoria=${encodeURIComponent(categoria)}`}
                                     className="hover:underline transition-colors duration-200"
                                 >
                                     {categoria}
@@ -127,7 +127,7 @@ export default function Header() {
                             {categorias.map((categoria) => (
                                 <li key={categoria}>
                                     <Link
-                                        href={`/?categoria=${encodeURIComponent(categoria)}`}
+                                        href={`/produtos?categoria=${encodeURIComponent(categoria)}`}
                                         className="block hover:underline transition-colors duration-200"
                                         onClick={() => setMenuAberto(false)}
                                     >

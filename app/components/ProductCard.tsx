@@ -37,7 +37,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
             className="flex flex-col h-full w-full border border-gray-200 hover:border-gray-400 rounded-2xl overflow-hidden shadow-sm bg-white transition"
         >
-            <Link href={`/produto/${product.slug}`} className="flex-1 flex flex-col">
+            <Link href={`/produtos/${product.slug}`} className="flex-1 flex flex-col">
                 <div className="relative aspect-[4/3] w-full bg-gray-50 flex items-center justify-center">
                     {product.promocao && (
                         <div className="absolute top-2 right-2 z-10">
