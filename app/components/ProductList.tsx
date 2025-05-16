@@ -10,6 +10,10 @@ export default function ProductList() {
     const { produtos } = useCatalogo();
     const searchParams = useSearchParams();
 
+    const rawVisualizacao = searchParams.get('visualizacao');
+    const visualizacao: 'grade' | 'lista' =
+        rawVisualizacao === 'lista' ? 'lista' : 'grade';
+
     const filtros = {
         categoria: searchParams.get('categoria')?.toLowerCase() || '',
         busca: searchParams.get('busca')?.toLowerCase() || '',
@@ -22,7 +26,13 @@ export default function ProductList() {
     const produtosFiltrados = filtrarProdutos(produtos, filtros);
 
     return produtosFiltrados.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 font-sans">
+        <div
+            className={
+                visualizacao === 'grade'
+                    ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 font-sans'
+                    : 'flex flex-col gap-4 font-sans'
+            }
+        >
             <AnimatePresence>
                 {produtosFiltrados.map((produto) => (
                     <motion.div
@@ -37,12 +47,15 @@ export default function ProductList() {
                                 ...produto,
                                 imagemPrincipal: produto.imagemPrincipal || '',
                             }}
+                            visualizacao={visualizacao}
                         />
                     </motion.div>
                 ))}
             </AnimatePresence>
         </div>
     ) : (
-        <p className="text-center text-gray-600 text-sm">Nenhum produto encontrado.</p>
+        <p className="text-center text-gray-600 text-sm">
+            Nenhum produto encontrado.
+        </p>
     );
 }
