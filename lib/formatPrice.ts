@@ -15,3 +15,15 @@ export function formatPreco(valor: string | number): string {
         currency: "BRL",
     });
 }
+
+export function formatPrecoToNumber(valor: string | number): number {
+    if (typeof valor === 'number') return valor;
+
+    return parseFloat(
+        valor
+            .replace('R$', '')
+            .replace(/\./g, '')
+            .replace(',', '.')
+            .trim()
+    );
+}
