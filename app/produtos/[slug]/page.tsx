@@ -4,17 +4,19 @@ import ProductPageClient from './ProductPageClient';
 import type { Metadata } from 'next';
 import { formatPrecoToNumber } from '@/lib/formatPrice';
 
-export async function generateMetadata(
-    props: { params: Record<string, string | string[]> }
-): Promise<Metadata> {
-    const slug = typeof props.params.slug === 'string' ? props.params.slug : props.params.slug?.[0];
-
-    if (!slug) return { title: 'Produto não encontrado' };
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+    const { slug } = await params;
 
     const produtos = await fetchProducts();
     const produto = produtos.find((p) => p.slug === slug);
 
-    if (!produto) return { title: 'Produto não encontrado' };
+    if (!produto) {
+        return { title: 'Produto não encontrado' };
+    }
 
     const preco = produto.promocao || produto.valor;
     const precoNumerico = formatPrecoToNumber(preco);
@@ -47,12 +49,12 @@ export async function generateMetadata(
     };
 }
 
-export default async function ProductPage(
-    props: { params: Record<string, string | string[]> }
-) {
-    const slug = typeof props.params.slug === 'string' ? props.params.slug : props.params.slug?.[0];
-
-    if (!slug) return notFound();
+export default async function ProductPage({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+}) {
+    const { slug } = await params;
 
     const produtos = await fetchProducts();
     const produto = produtos.find((p) => p.slug === slug);
@@ -66,5 +68,9 @@ export default async function ProductPage(
         produto.imagem4,
     ].filter(Boolean) as string[];
 
-    return <ProductPageClient product={produto} imagens={imagens} />;
+    return (
+        <main className="max-w-6xl mx-auto px-4 py-6 space-y-12">
+            <ProductPageClient product={produto} imagens={imagens} todosProdutos={produtos} />
+        </main>
+    );
 }

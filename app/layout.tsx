@@ -44,6 +44,7 @@ export default function RootLayout({
               </Suspense>
               {children}
             </main>
+
             <BotaoCompararFlutuante />
             <Footer />
           </CompararProvider>

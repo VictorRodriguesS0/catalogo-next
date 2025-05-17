@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useCatalogo } from '@/app/context/CatalogoContext';
+import { Home } from 'lucide-react';
 
 type Crumb = {
     label: string;
@@ -11,53 +12,78 @@ type Crumb = {
 
 export default function Breadcrumbs() {
     const pathname = usePathname();
-    const segments = pathname.split('/').filter(Boolean);
-
-    if (pathname === '/') return null;
-
+    const searchParams = useSearchParams();
     const { produtos } = useCatalogo();
 
-    function formatarSegmento(seg: string): string {
-        const decoded = decodeURIComponent(seg.replace(/-/g, ' '));
-        return decoded
-            .split(' ')
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    }
+    const segments = pathname.split('/').filter(Boolean);
+    if (pathname === '/') return null;
 
-    const isProdutoDetalhe =
-        segments.length === 2 &&
-        segments[0] === 'produtos' &&
-        produtos.length > 0;
+    const termoBusca = searchParams.get('busca');
+    const categoriaParam = searchParams.get('categoria');
 
-    const produtoSlug = segments[1];
-    const produtoEncontrado = produtos.find((p) => p.slug === produtoSlug);
-    const tituloProduto = produtoEncontrado?.titulo;
+    const crumbs: Crumb[] = [{ label: 'Início', href: '/' }];
 
-    const crumbs: Crumb[] = [
-        { label: 'Início', href: '/' },
-        { label: 'Produtos', href: '/produtos' },
-    ];
+    // Corrigido: só exibe "Resultados para..." se for realmente uma busca
+    const isPaginaBusca =
+        termoBusca &&
+        !pathname.startsWith('/produtos/') &&
+        !pathname.startsWith('/categorias/') &&
+        !segments.some((seg) => produtos.some((p) => p.slug === seg));
 
-    if (isProdutoDetalhe && tituloProduto) {
-        crumbs.push({ label: tituloProduto });
-    } else {
-        segments.slice(1).forEach((seg, i) => {
-            const href = '/' + segments.slice(0, i + 2).join('/');
-            const label = formatarSegmento(seg);
-            crumbs.push({ label, href });
-        });
+    if (isPaginaBusca) {
+        crumbs.push({ label: 'Produtos', href: '/produtos' });
+        crumbs.push({ label: `Resultados para "${termoBusca}"` });
+    } else if (pathname === '/produtos' && categoriaParam) {
+        crumbs.push({ label: 'Produtos', href: '/produtos' });
+        crumbs.push({ label: categoriaParam });
+    } else if (segments[0] === 'produtos' && segments[1] && produtos.length > 0) {
+        const produto = produtos.find((p) => p.slug === segments[1]);
+        if (produto) {
+            crumbs.push({ label: 'Produtos', href: '/produtos' });
+            if (produto.categoria) {
+                crumbs.push({
+                    label: produto.categoria,
+                    href: `/produtos?categoria=${encodeURIComponent(produto.categoria)}`,
+                });
+            }
+            if (produto.subcategoria) {
+                crumbs.push({
+                    label: produto.subcategoria,
+                    href: `/categorias/${encodeURIComponent(produto.categoria)}/${encodeURIComponent(produto.subcategoria)}`,
+                });
+            }
+            crumbs.push({ label: produto.titulo });
+        }
+    } else if (segments[0] === 'categorias') {
+        crumbs.push({ label: 'Produtos', href: '/produtos' });
+        const categoria = decodeURIComponent(segments[1] || '');
+        const subcategoria = decodeURIComponent(segments[2] || '');
+        if (categoria) {
+            crumbs.push({
+                label: categoria,
+                href: `/produtos?categoria=${encodeURIComponent(categoria)}`,
+            });
+        }
+        if (subcategoria) {
+            crumbs.push({ label: subcategoria });
+        }
+    } else if (pathname === '/produtos') {
+        crumbs.push({ label: 'Produtos' });
     }
 
     return (
-        <nav className="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
-            <ol className="flex flex-wrap items-center gap-1">
-                {crumbs.map((crumb, i) => (
-                    <li key={i} className="flex items-center gap-1">
-                        {i > 0 && <span>/</span>}
+        <nav className="text-sm mt-4 mb-6 max-w-6xl mx-auto px-4" aria-label="breadcrumb">
+            <ol className="flex flex-wrap items-center gap-1 text-gray-500">
+                {crumbs.map((crumb, index) => (
+                    <li key={index} className="flex items-center gap-1">
+                        {index > 0 && <span className="text-gray-300 mx-1">→</span>}
                         {crumb.href ? (
-                            <Link href={crumb.href} className="hover:underline">
-                                {crumb.label}
+                            <Link
+                                href={crumb.href}
+                                className="flex items-center gap-1 hover:text-blue-600 transition"
+                            >
+                                {index === 0 && <Home size={14} className="mt-[1px]" />}
+                                <span>{crumb.label}</span>
                             </Link>
                         ) : (
                             <span className="text-gray-600">{crumb.label}</span>

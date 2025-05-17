@@ -4,12 +4,27 @@ import { NextResponse } from 'next/server';
 export async function GET() {
     const produtos = await fetchProducts();
 
-    const categorias = Array.from(
-        new Set(produtos.map((p) => p.categoria).filter(Boolean))
-    );
+    const estrutura: Record<string, Set<string>> = {};
 
-    const temPromocao = produtos.some((p) => !!p.promocao);
-    if (temPromocao) categorias.unshift('Promoções'); // Adiciona no topo
+    for (const p of produtos) {
+        if (!p.categoria || String(p.inativo).toLowerCase() === 'true') continue;
 
-    return NextResponse.json(categorias);
+        const categoria = p.categoria.trim();
+        const subcategoria = p.subcategoria?.trim();
+
+        if (!estrutura[categoria]) {
+            estrutura[categoria] = new Set();
+        }
+
+        if (subcategoria) {
+            estrutura[categoria].add(subcategoria);
+        }
+    }
+
+    const resultado: Record<string, string[]> = {};
+    for (const [categoria, subcategorias] of Object.entries(estrutura)) {
+        resultado[categoria] = Array.from(subcategorias).sort();
+    }
+
+    return NextResponse.json(resultado);
 }

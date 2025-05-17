@@ -7,11 +7,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { filtrarProdutos } from '@/lib/filtrarProdutos';
 import { aliasesCategorias } from '@/lib/aliasesCategorias';
 import { Product } from '@/lib/fetchProducts';
+import { useEffect, useRef, useState } from 'react';
 
+const LIMITE_INICIAL = 20;
+const INCREMENTO = 20;
 
 export default function ProductList() {
     const { produtos } = useCatalogo();
     const searchParams = useSearchParams();
+    const [limite, setLimite] = useState(LIMITE_INICIAL);
+    const sentinelaRef = useRef<HTMLDivElement | null>(null);
 
     const rawVisualizacao = searchParams.get('visualizacao');
     const visualizacao: 'grade' | 'lista' =
@@ -42,7 +47,6 @@ export default function ProductList() {
         return Number(valor);
     }
 
-
     function ordenarProdutos(lista: Product[], criterio: string) {
         return [...lista].sort((a, b) => {
             const valorA = getValorParaOrdenacao(a);
@@ -53,12 +57,10 @@ export default function ProductList() {
                     if (isNaN(valorA)) return 1;
                     if (isNaN(valorB)) return -1;
                     return valorA - valorB;
-
                 case 'preco-desc':
                     if (isNaN(valorA)) return 1;
                     if (isNaN(valorB)) return -1;
                     return valorB - valorA;
-
                 case 'az':
                     return a.titulo.localeCompare(b.titulo);
                 case 'za':
@@ -69,13 +71,10 @@ export default function ProductList() {
         });
     }
 
-
-
-
     const produtosOrdenados = ordenarProdutos(produtosFiltrados, ordenar);
 
     const produtosPorCategoria = produtosOrdenados.reduce(
-        (acc: Record<string, typeof produtosOrdenados>, produto) => {
+        (acc: Record<string, Product[]>, produto) => {
             const categoria = produto.categoria || 'Outros';
             if (!acc[categoria]) acc[categoria] = [];
             acc[categoria].push(produto);
@@ -84,43 +83,69 @@ export default function ProductList() {
         {}
     );
 
+    // Scroll infinito
+    useEffect(() => {
+        if (!sentinelaRef.current) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    setLimite((prev) => prev + INCREMENTO);
+                }
+            },
+            { threshold: 1 }
+        );
+
+        observer.observe(sentinelaRef.current);
+        return () => observer.disconnect();
+    }, []);
+
     return produtosOrdenados.length > 0 ? (
         <div className="space-y-10 font-sans">
-            {Object.entries(produtosPorCategoria).map(([categoria, produtos]) => (
-                <div key={categoria}>
-                    <h2 className="text-xl font-semibold mb-4 text-gray-800">
-                        {aliasesCategorias[categoria.toLowerCase()] || categoria}
-                    </h2>
+            {Object.entries(produtosPorCategoria).map(([categoria, produtos]) => {
+                const visiveis = produtos.slice(0, limite);
+                const exibirSentinela = produtos.length > visiveis.length;
 
-                    <div
-                        className={
-                            visualizacao === 'grade'
-                                ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
-                                : 'flex flex-col gap-4'
-                        }
-                    >
-                        <AnimatePresence>
-                            {produtos.map((produto) => (
-                                <motion.div
-                                    key={produto.slug}
-                                    initial={{ opacity: 0, scale: 0.96 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ProductCard
-                                        product={{
-                                            ...produto,
-                                            imagemPrincipal: produto.imagemPrincipal || '',
-                                        }}
-                                        visualizacao={visualizacao}
-                                    />
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
+                return (
+                    <div key={categoria}>
+                        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                            {aliasesCategorias[categoria.toLowerCase()] || categoria}
+                        </h2>
+
+                        <div
+                            className={
+                                visualizacao === 'grade'
+                                    ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
+                                    : 'flex flex-col gap-4'
+                            }
+                        >
+                            <AnimatePresence>
+                                {visiveis.map((produto) => (
+                                    <motion.div
+                                        key={produto.slug}
+                                        initial={{ opacity: 0, scale: 0.96 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ProductCard
+                                            product={{
+                                                ...produto,
+                                                imagemPrincipal: produto.imagemPrincipal || '',
+                                            }}
+                                            visualizacao={visualizacao}
+                                        />
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        </div>
+
+                        {exibirSentinela && (
+                            <div ref={sentinelaRef} className="h-10" />
+                        )}
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     ) : (
         <p className="text-center text-gray-600 text-sm">

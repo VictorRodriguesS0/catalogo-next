@@ -5,13 +5,15 @@ import GaleriaProduto from '@/app/components/GaleriaProduto';
 import { formatPreco } from '@/lib/formatPrice';
 import { fetchTaxas, Taxa } from '@/lib/fetchTaxas';
 import { Product } from '@/lib/fetchProducts';
+import ProdutosRelacionados from '@/app/components/ProdutosRelacionados';
 
 interface Props {
     product: Product;
     imagens: string[];
+    todosProdutos: Product[];
 }
 
-export default function ProductPageClient({ product, imagens }: Props) {
+export default function ProductPageClient({ product, imagens, todosProdutos }: Props) {
     const [showModal, setShowModal] = useState(false);
     const [taxas, setTaxas] = useState<Taxa[]>([]);
     const [mostrarTaxa, setMostrarTaxa] = useState(false);
@@ -30,19 +32,17 @@ export default function ProductPageClient({ product, imagens }: Props) {
     }, [showModal]);
 
     useEffect(() => {
-        function handleKeyDown(e: KeyboardEvent) {
+        const handler = (e: KeyboardEvent) => {
             if (e.key === 'Escape') setShowModal(false);
-        }
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
     }, []);
 
-    // Corrigido: uso de number seguro
     const preco = product.promocao ?? product.valor ?? 0;
     const taxa12x = taxas.find((t) => t.parcelas.replace('x', '') === '12')?.taxa || 0;
     const total12x = preco * (1 + taxa12x / 100);
     const parcela12x = total12x / 12;
-
     const taxasVisiveis = verMais ? taxas : taxas.slice(0, 12);
 
     const formatarMoeda = (valor: number): string =>
@@ -64,7 +64,7 @@ export default function ProductPageClient({ product, imagens }: Props) {
     };
 
     return (
-        <main className="p-4 md:p-6 max-w-6xl mx-auto font-sans">
+        <main className="p-4 md:p-6 max-w-6xl mx-auto font-sans space-y-12">
             <div className="flex flex-col md:flex-row gap-10">
                 <div className="flex-1 max-w-full md:max-w-md">
                     <GaleriaProduto imagens={imagens} titulo={product.titulo} />
@@ -224,6 +224,8 @@ export default function ProductPageClient({ product, imagens }: Props) {
                     </div>
                 </div>
             )}
+
+            <ProdutosRelacionados produtoAtual={product} todosProdutos={todosProdutos} />
         </main>
     );
 }

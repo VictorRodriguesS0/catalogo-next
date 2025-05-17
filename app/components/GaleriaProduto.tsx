@@ -7,6 +7,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 import type { Swiper as SwiperType } from 'swiper';
+import Image from 'next/image';
 
 interface GaleriaProdutoProps {
     imagens: string[];
@@ -26,11 +27,15 @@ export default function GaleriaProduto({ imagens, titulo }: GaleriaProdutoProps)
             >
                 {imagens.map((img, i) => (
                     <SwiperSlide key={i}>
-                        <img
-                            src={img || '/fallback.png'}
-                            alt={titulo}
-                            className="w-full h-[400px] object-contain bg-white"
-                        />
+                        <div className="relative w-full h-[400px] bg-white">
+                            <Image
+                                src={img || '/fallback.png'}
+                                alt={titulo}
+                                fill
+                                className="object-contain"
+                                sizes="100%"
+                            />
+                        </div>
                     </SwiperSlide>
                 ))}
             </Swiper>
@@ -45,11 +50,15 @@ export default function GaleriaProduto({ imagens, titulo }: GaleriaProdutoProps)
                 >
                     {imagens.map((img, i) => (
                         <SwiperSlide key={i}>
-                            <img
-                                src={img || '/fallback.png'}
-                                alt={`Miniatura ${i + 1}`}
-                                className="w-full h-20 object-contain border rounded-md cursor-pointer bg-white"
-                            />
+                            <div className="relative w-full h-20 bg-white border rounded-md">
+                                <Image
+                                    src={img || '/fallback.png'}
+                                    alt={`Miniatura ${i + 1}`}
+                                    fill
+                                    className="object-contain cursor-pointer rounded-md"
+                                    sizes="100%"
+                                />
+                            </div>
                         </SwiperSlide>
                     ))}
                 </Swiper>
