@@ -6,7 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatPreco } from '@/lib/formatPrice';
 import { useComparar } from '@/app/context/CompararContext';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useSearchParams, usePathname } from 'next/navigation';
 import * as htmlToImage from 'html-to-image';
 
