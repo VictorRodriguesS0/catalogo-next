@@ -19,6 +19,8 @@ export interface Product {
     ram?: string;
     armazenamento?: string;
     slug: string;
+    tem5g?: boolean;
+    temNFC?: boolean;
 }
 
 interface RawProduct {
@@ -38,6 +40,7 @@ interface RawProduct {
     inativo?: string;
     ram?: string;
     armazenamento?: string;
+    NFC?: string;
 }
 
 const CSV_URL =
@@ -64,7 +67,6 @@ function parseValor(raw: string | undefined): number | undefined {
     return isNaN(parsed) ? undefined : parsed;
 }
 
-
 export async function fetchProducts(): Promise<Product[]> {
     const response = await fetch(CSV_URL);
     const csvText = await response.text();
@@ -88,6 +90,13 @@ export async function fetchProducts(): Promise<Product[]> {
                         const promocaoNum = parseValor(p.promocao);
                         const valorNum = parseValor(p.valor) ?? 0;
 
+                        // Detectar 5G com base no título
+                        const tem5g = p.titulo.includes(' 5G ');
+
+                        // Interpretar campo NFC
+                        const nfcBruto = (p.NFC || '').trim().toLowerCase();
+                        const temNFC = ['sim', 'nfc', 'true'].includes(nfcBruto) || false;
+
                         return {
                             ...p,
                             titulo: p.titulo.trim(),
@@ -107,6 +116,8 @@ export async function fetchProducts(): Promise<Product[]> {
                             ram: p.ram?.trim(),
                             armazenamento: p.armazenamento?.trim(),
                             slug: slugify(p.titulo),
+                            tem5g,
+                            temNFC,
                         };
                     });
 

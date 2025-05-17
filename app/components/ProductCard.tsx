@@ -6,6 +6,7 @@ import { formatPreco } from '@/lib/formatPrice';
 import { Product } from '@/lib/fetchProducts';
 import { WHATSAPP_NUMERO } from '@/lib/whatsapp';
 import { useCatalogo } from '@/app/context/CatalogoContext';
+import { useComparar } from '@/app/context/CompararContext';
 import { motion } from 'framer-motion';
 
 interface ProductCardProps {
@@ -15,9 +16,10 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, visualizacao = 'grade' }: ProductCardProps) {
     const imagem = product.imagemPrincipal || '/fallback.png';
-
     const precoNum = product.promocao ?? product.valor ?? 0;
     const { taxa12x } = useCatalogo();
+    const { comparar, adicionar, remover, modoComparar } = useComparar();
+    const jaComparado = comparar.some((p) => p.slug === product.slug);
 
     const mostrarParcelamento = precoNum > 50 && taxa12x !== null;
     const totalComJuros = precoNum * (1 + (taxa12x || 0) / 100);
@@ -98,7 +100,7 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
                     )}
                 </Link>
 
-                <div className="mt-4">
+                <div className="mt-4 space-y-2">
                     <a
                         href={linkZap}
                         target="_blank"
@@ -108,6 +110,18 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
                     >
                         Comprar no WhatsApp
                     </a>
+
+                    {modoComparar && (
+                        <button
+                            onClick={() => (jaComparado ? remover(product.slug) : adicionar(product))}
+                            className={`w-full text-center border text-sm font-medium py-2 px-4 rounded-md transition ${jaComparado
+                                ? 'border-red-500 text-red-600 hover:bg-red-100'
+                                : 'border-blue-500 text-blue-600 hover:bg-blue-100'
+                                }`}
+                        >
+                            {jaComparado ? '✓ Remover da comparação' : '+ Selecionar para comparar'}
+                        </button>
+                    )}
                 </div>
             </div>
         </motion.div>

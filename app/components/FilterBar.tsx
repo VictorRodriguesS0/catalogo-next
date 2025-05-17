@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useCatalogo } from '@/app/context/CatalogoContext';
+import { useComparar } from '@/app/context/CompararContext';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function FilterBar() {
@@ -10,6 +11,7 @@ export default function FilterBar() {
     const pathname = usePathname();
     const router = useRouter();
     const { marcas, cores } = useCatalogo();
+    const { modoComparar, setModoComparar } = useComparar();
 
     const [mostrarFiltros, setMostrarFiltros] = useState(false);
     const [marcasSelecionadas, setMarcasSelecionadas] = useState<string[]>([]);
@@ -70,13 +72,12 @@ export default function FilterBar() {
             params.delete('promocao');
         }
 
-
         router.replace(`${pathname}?${params.toString()}`);
         setMostrarFiltros(false);
     };
 
     const limparFiltros = () => {
-        router.replace(pathname); // Mantém a rota atual, sem query
+        router.replace(pathname);
         setMostrarFiltros(false);
     };
 
@@ -90,22 +91,34 @@ export default function FilterBar() {
                     {mostrarFiltros ? 'Fechar filtros' : 'Filtrar'}
                 </button>
 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                    <label htmlFor="ordenar" className="text-sm font-medium">
-                        Ordenar por
-                    </label>
-                    <select
-                        id="ordenar"
-                        value={ordenar}
-                        onChange={(e) => setOrdenar(e.target.value)}
-                        className="border border-gray-300 rounded px-3 py-1 text-sm w-44"
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="ordenar" className="text-sm font-medium">
+                            Ordenar por
+                        </label>
+                        <select
+                            id="ordenar"
+                            value={ordenar}
+                            onChange={(e) => setOrdenar(e.target.value)}
+                            className="border border-gray-300 rounded px-3 py-1 text-sm w-44"
+                        >
+                            <option value="">Padrão</option>
+                            <option value="menor-preco">Menor preço</option>
+                            <option value="maior-preco">Maior preço</option>
+                            <option value="a-z">Nome A-Z</option>
+                            <option value="z-a">Nome Z-A</option>
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={() => setModoComparar(!modoComparar)}
+                        className={`text-sm font-medium px-4 py-2 rounded border transition ${modoComparar
+                                ? 'text-red-600 border-red-300 hover:bg-red-100'
+                                : 'text-blue-600 border-blue-300 hover:bg-blue-100'
+                            }`}
                     >
-                        <option value="">Padrão</option>
-                        <option value="menor-preco">Menor preço</option>
-                        <option value="maior-preco">Maior preço</option>
-                        <option value="a-z">Nome A-Z</option>
-                        <option value="z-a">Nome Z-A</option>
-                    </select>
+                        {modoComparar ? 'Sair do modo comparação' : 'Ativar comparação'}
+                    </button>
                 </div>
             </div>
 

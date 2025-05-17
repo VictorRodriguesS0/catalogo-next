@@ -4,15 +4,15 @@ import ProductPageClient from './ProductPageClient';
 import type { Metadata } from 'next';
 import { formatPrecoToNumber } from '@/lib/formatPrice';
 
-export async function generateMetadata({
-    params,
-}: {
-    params: { slug?: string };
-}): Promise<Metadata> {
-    if (!params?.slug) return { title: 'Produto não encontrado' };
+export async function generateMetadata(
+    props: { params: Record<string, string | string[]> }
+): Promise<Metadata> {
+    const slug = typeof props.params.slug === 'string' ? props.params.slug : props.params.slug?.[0];
+
+    if (!slug) return { title: 'Produto não encontrado' };
 
     const produtos = await fetchProducts();
-    const produto = produtos.find((p) => p.slug === params.slug);
+    const produto = produtos.find((p) => p.slug === slug);
 
     if (!produto) return { title: 'Produto não encontrado' };
 
@@ -20,6 +20,7 @@ export async function generateMetadata({
     const precoNumerico = formatPrecoToNumber(preco);
 
     return {
+        metadataBase: new URL('https://catalogo-next.netlify.app'),
         title: `${produto.titulo} | Lojinha Eletrônicos`,
         description:
             produto.descricao ||
@@ -46,15 +47,15 @@ export async function generateMetadata({
     };
 }
 
-export default async function ProductPage({
-    params,
-}: {
-    params: { slug?: string };
-}) {
-    if (!params?.slug) return notFound();
+export default async function ProductPage(
+    props: { params: Record<string, string | string[]> }
+) {
+    const slug = typeof props.params.slug === 'string' ? props.params.slug : props.params.slug?.[0];
+
+    if (!slug) return notFound();
 
     const produtos = await fetchProducts();
-    const produto = produtos.find((p) => p.slug === params.slug);
+    const produto = produtos.find((p) => p.slug === slug);
 
     if (!produto) return notFound();
 
