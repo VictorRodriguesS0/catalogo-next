@@ -1,85 +1,239 @@
 'use client';
 
-import { useComparar } from '@/app/context/CompararContext';
+import { useEffect, useRef, useState } from 'react';
+import { fetchProducts, Product } from '@/lib/fetchProducts';
 import Image from 'next/image';
+import Link from 'next/link';
 import { formatPreco } from '@/lib/formatPrice';
 import { useCatalogo } from '@/app/context/CatalogoContext';
-import Link from 'next/link';
+import { useComparar } from '@/app/context/CompararContext';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 
 export default function CompararPage() {
-    const { comparar, remover, limpar } = useComparar();
+    const { comparar, adicionar, remover, limpar } = useComparar();
+    const [todosProdutos, setTodosProdutos] = useState<Product[]>([]);
+    const [buscas, setBuscas] = useState<string[]>(['', '', '']);
+    const [visivel, setVisivel] = useState<number | null>(null);
+    const wrapperRefs = [useRef(null), useRef(null), useRef(null)];
     const { taxa12x } = useCatalogo();
+    const searchParams = useSearchParams();
 
-    if (comparar.length === 0) {
-        return (
-            <div className="text-center text-gray-500 mt-10">
-                Nenhum produto selecionado para comparação.
-            </div>
-        );
-    }
+    useEffect(() => {
+        fetchProducts().then(setTodosProdutos);
+    }, []);
+
+    useEffect(() => {
+        function fecharSugestoes(e: MouseEvent) {
+            if (!wrapperRefs.some(ref => ref.current && (ref.current as any).contains(e.target))) {
+                setVisivel(null);
+            }
+        }
+        document.addEventListener('mousedown', fecharSugestoes);
+        return () => document.removeEventListener('mousedown', fecharSugestoes);
+    }, []);
+
+    useEffect(() => {
+        const slugs = searchParams.get('produtos')?.split(',') || [];
+
+        if (slugs.length > 0 && comparar.length === 0) {
+            fetchProducts().then((todos) => {
+                slugs.slice(0, 3).forEach((slug) => {
+                    const p = todos.find((prod) => prod.slug === slug);
+                    if (p) adicionar(p);
+                });
+            });
+        }
+    }, []);
+
+    const handleSelecionar = (produto: Product, i: number) => {
+        if (comparar.some(p => p.slug === produto.slug)) return;
+
+        adicionar(produto);
+
+        setBuscas(prev => {
+            const next = [...prev];
+            next[i] = produto.titulo;
+            return next;
+        });
+
+        setVisivel(null);
+    };
+
+    const handleLimpar = (i: number) => {
+        if (comparar[i]) remover(comparar[i]!.slug);
+        setBuscas(prev => {
+            const next = [...prev];
+            next[i] = '';
+            return next;
+        });
+    };
+
+    const gerarLinkCompartilhamento = () => {
+        const slugs = comparar.map(p => p.slug).filter(Boolean);
+        const url = new URL(window.location.href);
+        url.searchParams.set('produtos', slugs.join(','));
+        return url.toString();
+    };
+
+    const handleCompartilhar = () => {
+        const link = gerarLinkCompartilhamento();
+        navigator.clipboard.writeText(link).then(() => {
+            alert('Link de comparação copiado para a área de transferência!');
+        });
+    };
 
     return (
-        <div className="space-y-6 font-sans">
-            <h1 className="text-2xl font-bold">Comparar Produtos</h1>
+        <div className="font-sans max-w-7xl mx-auto p-4 space-y-6">
+            <h1 className="text-2xl font-bold mb-2">Comparar Produtos</h1>
 
-            <div className="overflow-x-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 min-w-[640px]">
-                    {comparar.map((produto) => {
-                        const precoPix = produto.promocao ?? produto.valor;
-                        const total = precoPix * (1 + (taxa12x || 0) / 100);
-                        const parcela = total / 12;
+            {/* Barras de busca */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[0, 1, 2].map((i) => (
+                    <div key={i} ref={wrapperRefs[i]} className="relative">
+                        <input
+                            type="text"
+                            placeholder={`Produto ${i + 1}`}
+                            className="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={buscas[i]}
+                            onChange={(e) => {
+                                const novas = [...buscas];
+                                novas[i] = e.target.value;
+                                setBuscas(novas);
+                                setVisivel(i);
+                            }}
+                            onFocus={() => setVisivel(i)}
+                        />
 
-                        return (
-                            <div
-                                key={produto.slug}
-                                className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex flex-col h-full"
-                            >
-                                <div className="relative w-full h-40 mb-4 bg-gray-50">
-                                    <Image
-                                        src={produto.imagemPrincipal || '/fallback.png'}
-                                        alt={produto.titulo}
-                                        fill
-                                        className="object-contain"
-                                    />
-                                </div>
+                        {visivel === i && buscas[i] && (
+                            <ul className="absolute z-30 mt-1 bg-white border border-gray-200 rounded shadow max-h-60 overflow-y-auto w-full text-sm">
+                                {todosProdutos
+                                    .filter(
+                                        (p) =>
+                                            p.titulo.toLowerCase().includes(buscas[i].toLowerCase()) &&
+                                            !comparar.some((c) => c.slug === p.slug)
+                                    )
+                                    .slice(0, 10)
+                                    .map((p) => (
+                                        <li
+                                            key={p.slug}
+                                            onClick={() => handleSelecionar(p, i)}
+                                            className="px-3 py-2 hover:bg-blue-50 cursor-pointer flex items-center gap-2"
+                                        >
+                                            <div className="w-8 h-8 relative flex-shrink-0">
+                                                <Image
+                                                    src={p.imagemPrincipal || '/fallback.png'}
+                                                    alt={p.titulo}
+                                                    fill
+                                                    sizes="32px"
+                                                    className="object-contain rounded-sm"
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                            <span className="truncate">{p.titulo}</span>
+                                        </li>
+                                    ))}
+                            </ul>
+                        )}
 
-                                <h2 className="text-sm font-semibold mb-2 line-clamp-2">
-                                    <Link href={`/produtos/${produto.slug}`} className="hover:underline">
-                                        {produto.titulo}
-                                    </Link>
-                                </h2>
-
-                                <ul className="text-xs text-gray-700 space-y-1 flex-1">
-                                    {produto.marca && <li><strong>Marca:</strong> {produto.marca}</li>}
-                                    {produto.cor && <li><strong>Cor:</strong> {produto.cor}</li>}
-                                    {produto.armazenamento && <li><strong>Armazenamento:</strong> {produto.armazenamento}</li>}
-                                    {produto.ram && <li><strong>RAM:</strong> {produto.ram}</li>}
-                                    <li><strong>5G:</strong> {produto.tem5g ? 'Sim' : 'Não'}</li>
-                                    <li><strong>NFC:</strong> {produto.temNFC ? 'Sim' : 'Não'}</li>
-                                    <li><strong>Pix:</strong> {formatPreco(precoPix)}</li>
-                                    <li><strong>12x:</strong> {formatPreco(parcela)}</li>
-                                </ul>
-
+                        {comparar[i] && (
+                            <div className="mt-1 text-right">
                                 <button
-                                    onClick={() => remover(produto.slug)}
-                                    className="mt-4 text-xs text-red-500 hover:underline"
+                                    onClick={() => handleLimpar(i)}
+                                    className="text-xs text-red-500 hover:underline"
                                 >
-                                    Remover da comparação
+                                    Limpar
                                 </button>
                             </div>
-                        );
-                    })}
-                </div>
+                        )}
+                    </div>
+                ))}
             </div>
 
-            <div className="text-center">
-                <button
-                    onClick={limpar}
-                    className="text-sm text-red-600 hover:underline"
-                >
-                    Limpar comparação
-                </button>
+            {/* Exibição dos produtos selecionados */}
+            <div className="overflow-x-auto mt-6">
+                <AnimatePresence mode="popLayout">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-w-[640px]">
+                        {[0, 1, 2].map((i) => {
+                            const produto = comparar[i];
+                            return (
+                                <motion.div
+                                    key={produto?.slug || `vazio-${i}`}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.25 }}
+                                >
+                                    {produto ? (
+                                        <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex flex-col h-full">
+                                            <div className="relative w-full h-40 mb-4 bg-gray-50">
+                                                <Image
+                                                    src={produto.imagemPrincipal || '/fallback.png'}
+                                                    alt={produto.titulo}
+                                                    fill
+                                                    className="object-contain"
+                                                    sizes="100%"
+                                                    loading="lazy"
+                                                />
+                                            </div>
+
+                                            <h2 className="text-sm font-semibold mb-2 line-clamp-2">
+                                                <Link href={`/produtos/${produto.slug}`} className="hover:underline">
+                                                    {produto.titulo}
+                                                </Link>
+                                            </h2>
+
+                                            <ul className="text-xs text-gray-700 space-y-1">
+                                                {produto.marca && <li><strong>Marca:</strong> {produto.marca}</li>}
+                                                {produto.cor && <li><strong>Cor:</strong> {produto.cor}</li>}
+                                                {produto.armazenamento && <li><strong>Armazenamento:</strong> {produto.armazenamento}</li>}
+                                                {produto.ram && <li><strong>RAM:</strong> {produto.ram}</li>}
+                                                <li><strong>5G:</strong> {produto.tem5g ? 'Sim' : 'Não'}</li>
+                                                <li><strong>NFC:</strong> {produto.temNFC ? 'Sim' : 'Não'}</li>
+                                                <li><strong>Pix:</strong> {formatPreco(produto.promocao ?? produto.valor)}</li>
+                                                {taxa12x !== null && (
+                                                    <li>
+                                                        <strong>12x:</strong>{' '}
+                                                        {formatPreco((produto.promocao ?? produto.valor) * (1 + taxa12x / 100) / 12)}
+                                                    </li>
+                                                )}
+                                            </ul>
+
+                                            {produto.descricao && (
+                                                <div
+                                                    className="text-xs text-gray-600 mt-3 prose prose-sm max-w-none"
+                                                    dangerouslySetInnerHTML={{ __html: produto.descricao }}
+                                                />
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="border border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-400 flex items-center justify-center h-[360px] bg-white">
+                                            Nenhum produto selecionado
+                                        </div>
+                                    )}
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </AnimatePresence>
             </div>
+
+            {comparar.length > 0 && (
+                <div className="text-center mt-6 flex flex-col items-center space-y-4">
+                    <button
+                        onClick={limpar}
+                        className="text-sm text-red-500 hover:underline"
+                    >
+                        Limpar comparação
+                    </button>
+                    <button
+                        onClick={handleCompartilhar}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
+                    >
+                        Compartilhar comparação
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
