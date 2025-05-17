@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { formatPreco } from '@/lib/formatPrice';
 import { useComparar } from '@/app/context/CompararContext';
 import { useSearchParams, usePathname } from 'next/navigation';
-import * as htmlToImage from 'html-to-image';
 
 export default function CompararPageInner() {
     const { comparar, adicionar, remover, limpar } = useComparar();
@@ -22,7 +21,6 @@ export default function CompararPageInner() {
         useRef(null),
     ];
 
-    const exportRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
 
     const substituirProduto = (index: number, produto: Product) => {
@@ -46,13 +44,11 @@ export default function CompararPageInner() {
         const slugs = searchParams.get('produtos')?.split(',') || [];
         if (slugs.length > 0 && comparar.length === 0) {
             fetchProducts().then((todos) => {
-                const encontrados: Product[] = [];
                 const buscasTemp = ['', '', ''];
                 slugs.slice(0, 3).forEach((slug, i) => {
                     const p = todos.find((prod) => prod.slug === slug);
                     if (p) {
                         adicionar(p);
-                        encontrados.push(p);
                         buscasTemp[i] = p.titulo;
                     }
                 });
@@ -62,15 +58,11 @@ export default function CompararPageInner() {
     }, []);
 
     useEffect(() => {
-        function fecharSugestoes(e: MouseEvent) {
-            if (
-                !wrapperRefs.some(
-                    (ref) => ref.current && ref.current.contains(e.target as Node)
-                )
-            ) {
+        const fecharSugestoes = (e: MouseEvent) => {
+            if (!wrapperRefs.some((ref) => ref.current && ref.current.contains(e.target as Node))) {
                 setVisivel(null);
             }
-        }
+        };
         document.addEventListener('mousedown', fecharSugestoes);
         return () => document.removeEventListener('mousedown', fecharSugestoes);
     }, []);
@@ -83,8 +75,7 @@ export default function CompararPageInner() {
         const slugs = comparar
             .map((p) => p?.slug)
             .filter((slug, i, arr) => slug && arr.indexOf(slug) === i);
-        const newUrl =
-            slugs.length > 0 ? `${pathname}?produtos=${slugs.join(',')}` : pathname;
+        const newUrl = slugs.length > 0 ? `${pathname}?produtos=${slugs.join(',')}` : pathname;
         window.history.replaceState({}, '', newUrl);
     };
 
@@ -100,36 +91,6 @@ export default function CompararPageInner() {
         navigator.clipboard.writeText(link).then(() => {
             alert('Link de comparação copiado para a área de transferência!');
         });
-    };
-
-    const handleCopiarImagem = async () => {
-        if (!exportRef.current) return;
-
-        try {
-            const blob = await htmlToImage.toBlob(exportRef.current, {
-                cacheBust: true,
-                pixelRatio: 2,
-                filter: (node) => {
-                    const el = node as HTMLElement;
-                    return (
-                        !el ||
-                        el.style?.display !== 'none' ||
-                        el.dataset?.exportVisible === 'true'
-                    );
-                },
-            });
-
-            if (blob) {
-                const item = new ClipboardItem({ 'image/png': blob });
-                await navigator.clipboard.write([item]);
-                alert('Imagem copiada para a área de transferência!');
-            } else {
-                alert('Erro ao gerar imagem');
-            }
-        } catch (error) {
-            console.error('Erro ao copiar imagem:', error);
-            alert('Erro ao copiar imagem. Tente novamente.');
-        }
     };
 
     return (
@@ -162,9 +123,7 @@ export default function CompararPageInner() {
                                 {todosProdutos
                                     .filter(
                                         (p) =>
-                                            p.titulo
-                                                .toLowerCase()
-                                                .includes(buscas[i].toLowerCase()) &&
+                                            p.titulo.toLowerCase().includes(buscas[i].toLowerCase()) &&
                                             !comparar.some((c) => c.slug === p.slug)
                                     )
                                     .slice(0, 10)
@@ -210,98 +169,59 @@ export default function CompararPageInner() {
                 ))}
             </div>
 
-            {/* BLOCO EXPORTÁVEL COM LOGO E TODOS OS CARDS */}
-            <div ref={exportRef} className="bg-white px-2 py-4 rounded-md w-full overflow-auto">
-                <div
-                    style={{ visibility: 'hidden', position: 'absolute', height: 0 }}
-                    data-export-visible="true"
-                    className="flex justify-center mb-4"
-                >
-                    <Image src="/logo.png" alt="Logo" width={160} height={60} />
-                </div>
-
-                <div className="inline-flex gap-4 w-full" style={{ whiteSpace: 'nowrap' }}>
-                    {[0, 1, 2].map((i) => {
-                        const produto = comparar[i];
-                        return (
-                            <div
-                                key={produto?.slug || `vazio-${i}`}
-                                className="w-[320px] snap-start shrink-0"
-                            >
-                                {produto ? (
-                                    <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex flex-col h-full">
-                                        <div className="relative w-full h-40 mb-4 bg-gray-50">
-                                            <Image
-                                                src={produto.imagemPrincipal || '/fallback.png'}
-                                                alt={produto.titulo}
-                                                fill
-                                                className="object-contain"
-                                                sizes="100%"
-                                                loading="lazy"
-                                            />
-                                        </div>
-
-                                        <h2 className="text-sm font-semibold mb-2 line-clamp-2">
-                                            <Link
-                                                href={`/produtos/${produto.slug}`}
-                                                className="hover:underline"
-                                            >
-                                                {produto.titulo}
-                                            </Link>
-                                        </h2>
-
-                                        <ul className="text-xs text-gray-700 space-y-1">
-                                            {produto.marca && (
-                                                <li>
-                                                    <strong>Marca:</strong> {produto.marca}
-                                                </li>
-                                            )}
-                                            {produto.cor && (
-                                                <li>
-                                                    <strong>Cor:</strong> {produto.cor}
-                                                </li>
-                                            )}
-                                            {produto.armazenamento && (
-                                                <li>
-                                                    <strong>Armazenamento:</strong>{' '}
-                                                    {produto.armazenamento}
-                                                </li>
-                                            )}
-                                            {produto.ram && (
-                                                <li>
-                                                    <strong>RAM:</strong> {produto.ram}
-                                                </li>
-                                            )}
-                                            <li>
-                                                <strong>5G:</strong> {produto.tem5g ? 'Sim' : 'Não'}
-                                            </li>
-                                            <li>
-                                                <strong>NFC:</strong> {produto.temNFC ? 'Sim' : 'Não'}
-                                            </li>
-                                            <li>
-                                                <strong>Preço no Pix:</strong>{' '}
-                                                {formatPreco(produto.promocao ?? produto.valor)}
-                                            </li>
-                                        </ul>
-
-                                        {produto.descricao && (
-                                            <div
-                                                className="text-xs text-gray-600 mt-3 prose prose-sm max-w-none max-h-48 overflow-y-auto scroll-thin pr-2"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: produto.descricao,
-                                                }}
-                                            />
-                                        )}
+            {/* VISUALIZAÇÃO DOS PRODUTOS COMPARADOS */}
+            <div className="flex gap-4 pt-6 overflow-x-auto">
+                {[0, 1, 2].map((i) => {
+                    const produto = comparar[i];
+                    return (
+                        <div
+                            key={produto?.slug || `vazio-${i}`}
+                            className="w-[320px] snap-start shrink-0"
+                        >
+                            {produto ? (
+                                <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex flex-col h-full">
+                                    <div className="relative w-full h-40 mb-4 bg-gray-50">
+                                        <Image
+                                            src={produto.imagemPrincipal || '/fallback.png'}
+                                            alt={produto.titulo}
+                                            fill
+                                            className="object-contain"
+                                            sizes="100%"
+                                            loading="lazy"
+                                        />
                                     </div>
-                                ) : (
-                                    <div className="border border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-400 flex items-center justify-center h-[360px] bg-white">
-                                        Nenhum produto selecionado
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
+
+                                    <h2 className="text-sm font-semibold mb-2 line-clamp-2">
+                                        <Link href={`/produtos/${produto.slug}`} className="hover:underline">
+                                            {produto.titulo}
+                                        </Link>
+                                    </h2>
+
+                                    <ul className="text-xs text-gray-700 space-y-1">
+                                        {produto.marca && <li><strong>Marca:</strong> {produto.marca}</li>}
+                                        {produto.cor && <li><strong>Cor:</strong> {produto.cor}</li>}
+                                        {produto.armazenamento && <li><strong>Armazenamento:</strong> {produto.armazenamento}</li>}
+                                        {produto.ram && <li><strong>RAM:</strong> {produto.ram}</li>}
+                                        <li><strong>5G:</strong> {produto.tem5g ? 'Sim' : 'Não'}</li>
+                                        <li><strong>NFC:</strong> {produto.temNFC ? 'Sim' : 'Não'}</li>
+                                        <li><strong>Preço no Pix:</strong> {formatPreco(produto.promocao ?? produto.valor)}</li>
+                                    </ul>
+
+                                    {produto.descricao && (
+                                        <div
+                                            className="text-xs text-gray-600 mt-3 prose prose-sm max-w-none max-h-48 overflow-y-auto scroll-thin pr-2"
+                                            dangerouslySetInnerHTML={{ __html: produto.descricao }}
+                                        />
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="border border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-400 flex items-center justify-center h-[360px] bg-white">
+                                    Nenhum produto selecionado
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* BOTÕES */}
@@ -318,12 +238,6 @@ export default function CompararPageInner() {
                         className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-5 py-2 rounded shadow transition duration-200"
                     >
                         Compartilhar comparação
-                    </button>
-                    <button
-                        onClick={handleCopiarImagem}
-                        className="bg-green-600 hover:bg-green-700 text-white text-sm px-5 py-2 rounded shadow transition duration-200"
-                    >
-                        Copiar imagem
                     </button>
                 </div>
             )}
