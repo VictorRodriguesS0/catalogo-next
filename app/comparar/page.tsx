@@ -8,10 +8,12 @@ import { formatPreco } from '@/lib/formatPrice';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { useComparar } from '@/app/context/CompararContext';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 export default function CompararPage() {
     const { comparar, adicionar, remover, limpar } = useComparar();
+    const pathname = usePathname();
+    const router = useRouter();
     const [todosProdutos, setTodosProdutos] = useState<Product[]>([]);
     const [buscas, setBuscas] = useState<string[]>(['', '', '']);
     const [visivel, setVisivel] = useState<number | null>(null);
@@ -19,8 +21,40 @@ export default function CompararPage() {
     const { taxa12x } = useCatalogo();
     const searchParams = useSearchParams();
 
+    const substituirProduto = (index: number, produto: Product) => {
+        const atual = [...comparar];
+        const existente = atual.find(p => p.slug === produto.slug);
+        if (existente) return; // evitar duplicatas
+
+        atual[index] = produto;
+        limpar();
+        atual.forEach(p => p && adicionar(p));
+        const novasBuscas = [...buscas];
+        novasBuscas[index] = produto.titulo;
+        setBuscas(novasBuscas);
+    };
+
     useEffect(() => {
         fetchProducts().then(setTodosProdutos);
+    }, []);
+
+    useEffect(() => {
+        const slugs = searchParams.get('produtos')?.split(',') || [];
+        if (slugs.length > 0 && comparar.length === 0) {
+            fetchProducts().then((todos) => {
+                const encontrados: Product[] = [];
+                const buscasTemp = ['', '', ''];
+                slugs.slice(0, 3).forEach((slug, i) => {
+                    const p = todos.find((prod) => prod.slug === slug);
+                    if (p) {
+                        adicionar(p);
+                        encontrados.push(p);
+                        buscasTemp[i] = p.titulo;
+                    }
+                });
+                setBuscas(buscasTemp);
+            });
+        }
     }, []);
 
     useEffect(() => {
@@ -34,39 +68,17 @@ export default function CompararPage() {
     }, []);
 
     useEffect(() => {
-        const slugs = searchParams.get('produtos')?.split(',') || [];
+        atualizarURL();
+    }, [comparar]);
 
-        if (slugs.length > 0 && comparar.length === 0) {
-            fetchProducts().then((todos) => {
-                slugs.slice(0, 3).forEach((slug) => {
-                    const p = todos.find((prod) => prod.slug === slug);
-                    if (p) adicionar(p);
-                });
-            });
-        }
-    }, []);
-
-    const handleSelecionar = (produto: Product, i: number) => {
-        if (comparar.some(p => p.slug === produto.slug)) return;
-
-        adicionar(produto);
-
-        setBuscas(prev => {
-            const next = [...prev];
-            next[i] = produto.titulo;
-            return next;
-        });
-
-        setVisivel(null);
-    };
-
-    const handleLimpar = (i: number) => {
-        if (comparar[i]) remover(comparar[i]!.slug);
-        setBuscas(prev => {
-            const next = [...prev];
-            next[i] = '';
-            return next;
-        });
+    const atualizarURL = () => {
+        const slugs = comparar
+            .map((p) => p?.slug)
+            .filter((slug, i, arr) => slug && arr.indexOf(slug) === i);
+        const newUrl = slugs.length > 0
+            ? `${pathname}?produtos=${slugs.join(',')}`
+            : pathname;
+        window.history.replaceState({}, '', newUrl);
     };
 
     const gerarLinkCompartilhamento = () => {
@@ -87,22 +99,25 @@ export default function CompararPage() {
         <div className="font-sans max-w-7xl mx-auto p-4 space-y-6">
             <h1 className="text-2xl font-bold mb-2">Comparar Produtos</h1>
 
-            {/* Barras de busca */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[0, 1, 2].map((i) => (
                     <div key={i} ref={wrapperRefs[i]} className="relative">
                         <input
                             type="text"
                             placeholder={`Produto ${i + 1}`}
-                            className="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition duration-200 focus:border-blue-400"
                             value={buscas[i]}
                             onChange={(e) => {
                                 const novas = [...buscas];
                                 novas[i] = e.target.value;
                                 setBuscas(novas);
                                 setVisivel(i);
+                                atualizarURL();
                             }}
-                            onFocus={() => setVisivel(i)}
+                            onFocus={() => {
+                                setVisivel(i);
+                                atualizarURL();
+                            }}
                         />
 
                         {visivel === i && buscas[i] && (
@@ -117,7 +132,7 @@ export default function CompararPage() {
                                     .map((p) => (
                                         <li
                                             key={p.slug}
-                                            onClick={() => handleSelecionar(p, i)}
+                                            onClick={() => substituirProduto(i, p)}
                                             className="px-3 py-2 hover:bg-blue-50 cursor-pointer flex items-center gap-2"
                                         >
                                             <div className="w-8 h-8 relative flex-shrink-0">
@@ -139,8 +154,14 @@ export default function CompararPage() {
                         {comparar[i] && (
                             <div className="mt-1 text-right">
                                 <button
-                                    onClick={() => handleLimpar(i)}
-                                    className="text-xs text-red-500 hover:underline"
+                                    onClick={() => {
+                                        remover(comparar[i]!.slug);
+                                        const next = [...buscas];
+                                        next[i] = '';
+                                        setBuscas(next);
+                                        atualizarURL();
+                                    }}
+                                    className="text-xs text-red-600 hover:underline transition duration-150"
                                 >
                                     Limpar
                                 </button>
@@ -150,10 +171,9 @@ export default function CompararPage() {
                 ))}
             </div>
 
-            {/* Exibição dos produtos selecionados */}
-            <div className="overflow-x-auto mt-6">
-                <AnimatePresence mode="popLayout">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-w-[640px]">
+            <div className="overflow-x-auto">
+                <div className="flex flex-col md:flex-row gap-6 min-w-[768px] md:min-w-full">
+                    <AnimatePresence mode="popLayout">
                         {[0, 1, 2].map((i) => {
                             const produto = comparar[i];
                             return (
@@ -163,6 +183,7 @@ export default function CompararPage() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     transition={{ duration: 0.25 }}
+                                    className="w-full md:w-1/3"
                                 >
                                     {produto ? (
                                         <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex flex-col h-full">
@@ -190,13 +211,7 @@ export default function CompararPage() {
                                                 {produto.ram && <li><strong>RAM:</strong> {produto.ram}</li>}
                                                 <li><strong>5G:</strong> {produto.tem5g ? 'Sim' : 'Não'}</li>
                                                 <li><strong>NFC:</strong> {produto.temNFC ? 'Sim' : 'Não'}</li>
-                                                <li><strong>Pix:</strong> {formatPreco(produto.promocao ?? produto.valor)}</li>
-                                                {taxa12x !== null && (
-                                                    <li>
-                                                        <strong>12x:</strong>{' '}
-                                                        {formatPreco((produto.promocao ?? produto.valor) * (1 + taxa12x / 100) / 12)}
-                                                    </li>
-                                                )}
+                                                <li><strong>Preço no Pix:</strong> {formatPreco(produto.promocao ?? produto.valor)}</li>
                                             </ul>
 
                                             {produto.descricao && (
@@ -214,21 +229,21 @@ export default function CompararPage() {
                                 </motion.div>
                             );
                         })}
-                    </div>
-                </AnimatePresence>
+                    </AnimatePresence>
+                </div>
             </div>
 
             {comparar.length > 0 && (
                 <div className="text-center mt-6 flex flex-col items-center space-y-4">
                     <button
                         onClick={limpar}
-                        className="text-sm text-red-500 hover:underline"
+                        className="text-sm text-red-600 hover:underline transition duration-150"
                     >
                         Limpar comparação
                     </button>
                     <button
                         onClick={handleCompartilhar}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-5 py-2 rounded shadow transition duration-200"
                     >
                         Compartilhar comparação
                     </button>
