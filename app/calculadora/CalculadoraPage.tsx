@@ -15,7 +15,6 @@ export default function CalculadoraPage() {
     const [entradaNumerica, setEntradaNumerica] = useState(0);
     const [mostrarTaxa, setMostrarTaxa] = useState(false);
     const [verMais, setVerMais] = useState(false);
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -51,140 +50,167 @@ export default function CalculadoraPage() {
         return (mensal * 100).toFixed(2) + '% ao mês';
     };
 
-    const gerarImagem = async (download = false) => {
+    const gerarImagem = async () => {
         if (!printRef.current) return;
-
         try {
             const blob = await htmlToImage.toBlob(printRef.current, {
                 backgroundColor: '#ffffff',
                 pixelRatio: 2,
             });
-
             if (blob) {
-                if (download) {
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'simulador-parcelamento.png';
-                    link.click();
-                } else {
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    await navigator.clipboard.write([item]);
-                    alert('Imagem copiada para a área de transferência!');
-                }
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'simulador-parcelamento.png';
+                link.click();
             } else {
                 alert('Erro ao gerar imagem');
             }
         } catch (err) {
             alert('Erro ao gerar imagem');
+            console.log("Erro ao gerar print:", err)
+        }
+    };
+
+    const copiarTexto = async (texto: string) => {
+        try {
+            await navigator.clipboard.writeText(texto);
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.classList.remove('hidden');
+                setTimeout(() => toast.classList.add('hidden'), 2000);
+            }
+        } catch {
+            alert('Erro ao copiar');
+        }
+    };
+
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>, tipo: 'valor' | 'entrada') => {
+        const input = e.target.value;
+        const apenasNumeros = input.replace(/\D/g, '');
+        const valor = parseFloat((parseInt(apenasNumeros || '0') / 100).toFixed(2));
+
+        if (tipo === 'valor') {
+            setValorNumerico(valor);
+            setValorFormatado(formatarMoeda(valor));
+        } else {
+            setEntradaNumerica(valor);
+            setEntradaFormatada(formatarMoeda(valor));
         }
     };
 
     return (
-        <main className="max-w-3xl mx-auto p-6 font-sans text-gray-800">
-            <div ref={printRef} className='p-1 bg-white rounded-md'>
+        <main className="max-w-3xl mx-auto p-6 font-sans text-black">
+            <div ref={printRef} className="p-2 bg-white rounded">
                 <h1 className="text-3xl font-bold mb-6 text-center">Simulador de Parcelamento</h1>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                        <label htmlFor="valor" className="block mb-2 font-medium">Valor total desejado</label>
+                        <label htmlFor="valor" className="block mb-2 font-medium text-lg">Valor total desejado</label>
                         <input
                             id="valor"
                             type="text"
                             inputMode="numeric"
                             value={valorFormatado}
-                            onChange={(e) => {
-                                const raw = e.target.value.replace(/\D/g, '');
-                                const num = parseFloat((parseInt(raw || '0') / 100).toFixed(2));
-                                setValorNumerico(num);
-                                setValorFormatado(formatarMoeda(num));
-                            }}
+                            onChange={(e) => handleInput(e, 'valor')}
+                            placeholder="R$ 0,00"
                             className="w-full p-3 border border-gray-300 rounded-lg"
                         />
                     </div>
                     <div>
-                        <label htmlFor="entrada" className="block mb-2 font-medium">Entrada</label>
+                        <label htmlFor="entrada" className="block mb-2 font-medium text-lg">Entrada (R$)</label>
                         <input
                             id="entrada"
                             type="text"
                             inputMode="numeric"
                             value={entradaFormatada}
-                            onChange={(e) => {
-                                const raw = e.target.value.replace(/\D/g, '');
-                                const num = parseFloat((parseInt(raw || '0') / 100).toFixed(2));
-                                setEntradaNumerica(num);
-                                setEntradaFormatada(formatarMoeda(num));
-                            }}
+                            onChange={(e) => handleInput(e, 'entrada')}
+                            placeholder="R$ 0,00"
                             className="w-full p-3 border border-gray-300 rounded-lg"
                         />
                     </div>
                 </div>
 
                 {valorNumerico > 0 && restante > 0 && (
-                    <div className="bg-white border rounded-lg shadow-sm mt-4">
-                        <div className="flex flex-col divide-y divide-gray-200">
-                            {taxasVisiveis.map(({ parcelas, taxa }) => {
-                                const taxaDecimal = taxa / 100;
-                                const total = restante * (1 + taxaDecimal);
-                                const qtd = parseInt(parcelas.replace('x', '')) || 1;
-                                const valorParcela = total / qtd;
-                                const jurosMes = calcularJurosAoMes(taxa, qtd);
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full border border-gray-200 text-sm rounded-lg overflow-hidden text-center">
+                                <thead className="bg-blue-100 text-gray-800">
+                                    <tr>
+                                        <th className="border px-4 py-2">Parcelas</th>
+                                        {mostrarTaxa && <th className="border px-4 py-2">Taxa de Juros</th>}
+                                        <th className="border px-4 py-2">Valor da Parcela</th>
+                                        <th className="border px-4 py-2">{temEntrada ? 'Total no cartão' : 'Total'}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white">
+                                    {taxasVisiveis.map(({ parcelas, taxa }) => {
+                                        const taxaDecimal = taxa / 100;
+                                        const totalComTaxa = restante * (1 + taxaDecimal);
+                                        const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
+                                        const valorParcela = totalComTaxa / qtdParcelas;
+                                        const jurosMes = calcularJurosAoMes(taxa, qtdParcelas);
+                                        const texto = `${parcelas} de ${formatarMoeda(valorParcela)} - Total: ${formatarMoeda(totalComTaxa)}`;
 
-                                return (
-                                    <div
-                                        key={parcelas}
-                                        className="p-3 sm:p-4"
-                                    >
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
-                                            <p className="text-sm sm:text-base font-medium text-gray-800 whitespace-nowrap">
-                                                {parcelas} de {formatarMoeda(valorParcela)}
-                                            </p>
-                                            <p className="text-sm text-gray-600 whitespace-nowrap">
-                                                {temEntrada ? 'Total no cartão' : 'Total'}: <strong>{formatarMoeda(total)}</strong>
-                                            </p>
-                                            {mostrarTaxa && (
-                                                <p className="text-xs text-gray-400 whitespace-nowrap">
-                                                    Juros: {jurosMes}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            <div className="py-4 flex justify-center border-t">
-                                <img src="/logo.png" alt="Logo" className="h-10" />
-                            </div>
+                                        return (
+                                            <tr
+                                                key={parcelas}
+                                                onClick={() => copiarTexto(texto)}
+                                                className="hover:bg-blue-50 transition-colors cursor-pointer"
+                                            >
+                                                <td className="border px-4 py-2">{parcelas}</td>
+                                                {mostrarTaxa && <td className="border px-4 py-2">{jurosMes}</td>}
+                                                <td className="border px-4 py-2">{formatarMoeda(valorParcela)}</td>
+                                                <td className="border px-4 py-2 font-semibold">{formatarMoeda(totalComTaxa)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
+
+                        <div className="py-4 flex justify-center border-t">
+                            <img src="/logo.png" alt="Logo" className="h-10" />
+                        </div>
+                    </>
                 )}
             </div>
 
             {valorNumerico > 0 && restante > 0 && (
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
-                    <button
-                        onClick={() => {
-                            setVerMais(!verMais);
-                            if (!verMais) setMostrarTaxa(false);
-                        }}
-                        className="underline text-blue-600 hover:text-blue-800"
-                    >
-                        {verMais ? 'Mostrar menos parcelas' : 'Ver mais parcelas'}
-                    </button>
-                    {verMais && (
+                <>
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
                         <button
-                            onClick={() => setMostrarTaxa(!mostrarTaxa)}
+                            onClick={() => {
+                                setVerMais(!verMais);
+                                if (!verMais) setMostrarTaxa(false);
+                            }}
+                            className="underline text-blue-600 hover:text-blue-800"
+                        >
+                            {verMais ? 'Mostrar menos parcelas' : 'Ver mais parcelas'}
+                        </button>
+                        {verMais && (
+                            <button
+                                onClick={() => setMostrarTaxa(!mostrarTaxa)}
+                                className="underline text-gray-600 hover:text-gray-800"
+                            >
+                                {mostrarTaxa ? 'Ocultar taxas' : 'Mostrar taxas'}
+                            </button>
+                        )}
+                        <button
+                            onClick={gerarImagem}
                             className="underline text-gray-600 hover:text-gray-800"
                         >
-                            {mostrarTaxa ? 'Ocultar taxas' : 'Mostrar taxas'}
+                            Tirar print da tabela
                         </button>
-                    )}
-                    <button
-                        onClick={() => gerarImagem(isMobile)}
-                        className="underline text-gray-600 hover:text-gray-800"
+                    </div>
+
+                    <div
+                        id="toast"
+                        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-md hidden transition"
                     >
-                        {isMobile ? 'Download da tabela' : 'Tirar print da tabela'}
-                    </button>
-                </div>
+                        Copiado para a área de transferência!
+                    </div>
+                </>
             )}
         </main>
     );
