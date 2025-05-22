@@ -1,50 +1,74 @@
+// app/components/Footer.tsx
+import {
+    SiGooglemaps,
+    SiGoogle,
+    SiInstagram,
+    SiWhatsapp
+} from 'react-icons/si';
+import { loja } from '@/app/config/lojaConfig';
+
 const Footer = () => {
     return (
         <footer className="bg-gray-900 text-white py-8 mt-12">
-            <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-                <div className="text-center md:text-left">
-                    <h2 className="text-xl font-semibold">Lojinha Eletrônicos</h2>
-                    <p className="text-sm mt-1">
-                        Todos os produtos possuem nota fiscal e garantia.
-                        <br />
-                        Valores para pagamento à vista: dinheiro, débito ou transferência.
-                        <br />
-                        Parcelamos em até 12x nos cartões com juros.
+            <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Sobre a loja */}
+                <div className="space-y-3">
+                    <h2 className="text-xl font-semibold">{loja.nome}</h2>
+                    <p className="text-sm">
+                        {loja.pagamento.map((linha, i) => (
+                            <span key={i}>
+                                {linha}
+                                <br />
+                            </span>
+                        ))}
                     </p>
-                    <p className="text-xs mt-2 text-gray-400">
-                        Os valores e produtos disponíveis são válidos somente para a loja física
-                        e poderão ser alterados a qualquer momento sem aviso prévio.
-                    </p>
+                    <div className="text-sm">
+                        <p className="font-medium">Horário de funcionamento:</p>
+                        {loja.horarioFuncionamento.map((linha, i) => (
+                            <p key={i} className="text-xs text-gray-300">{linha}</p>
+                        ))}
+                    </div>
+                    <p className="text-xs text-gray-400">{loja.avisoLegal}</p>
                 </div>
 
-                <div className="text-center md:text-right">
-                    <p className="text-sm">Siga a gente:</p>
-                    <div className="flex justify-center md:justify-end gap-4 mt-2">
+                {/* Links e redes sociais */}
+                <div className="space-y-3 text-center md:text-right">
+                    <p className="text-sm font-medium">Siga a gente nas redes sociais:</p>
+                    <div className="flex justify-center md:justify-end gap-4 text-lg">
                         <a
-                            href="https://g.co/kgs/5wHXnr2"
+                            href={loja.redes.google}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:text-green-400 transition"
+                            className="hover:opacity-80 transition flex items-center gap-1"
                         >
-                            Google
+                            <SiGoogle /> <span className="text-sm">Google</span>
                         </a>
                         <a
-                            href="https://www.instagram.com/lojinhaimportadosdf/?hl=pt"
+                            href={loja.redes.instagram}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:text-pink-400 transition"
+                            className="hover:opacity-80 transition flex items-center gap-1"
                         >
-                            Instagram
+                            <SiInstagram /> <span className="text-sm">Instagram</span>
                         </a>
                         <a
-                            href="https://wa.me/5561983453409"
+                            href={loja.redes.whatsapp}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:text-green-500 transition"
+                            className="hover:opacity-80 transition flex items-center gap-1"
                         >
-                            WhatsApp
+                            <SiWhatsapp /> <span className="text-sm">WhatsApp</span>
+                        </a>
+                        <a
+                            href={loja.redes.maps}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:opacity-80 transition flex items-center gap-1"
+                        >
+                            <SiGooglemaps /> <span className="text-sm">Google Maps</span>
                         </a>
                     </div>
+                    <p className="text-xs text-gray-500 mt-4">{loja.copyright()}</p>
                 </div>
             </div>
         </footer>
