@@ -21,8 +21,21 @@ export default function SearchBox() {
     const router = useRouter();
     const boxRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const sugestoesRefs = useRef<(HTMLLIElement | null)[]>([]);
 
-    // Buscar sugestões
+    useEffect(() => {
+        sugestoesRefs.current = [];
+    }, [sugestoes]);
+
+    useEffect(() => {
+        if (highlightedIndex >= 0 && sugestoesRefs.current[highlightedIndex]) {
+            sugestoesRefs.current[highlightedIndex]?.scrollIntoView({
+                block: 'nearest',
+                behavior: 'smooth',
+            });
+        }
+    }, [highlightedIndex]);
+
     useEffect(() => {
         const timeout = setTimeout(async () => {
             const textoBusca = busca.trim().toLowerCase();
@@ -51,7 +64,6 @@ export default function SearchBox() {
         return () => clearTimeout(timeout);
     }, [busca]);
 
-    // Fechar sugestões ao clicar fora
     useEffect(() => {
         function handleClickFora(event: MouseEvent) {
             if (boxRef.current && !boxRef.current.contains(event.target as Node)) {
@@ -63,7 +75,6 @@ export default function SearchBox() {
         return () => document.removeEventListener('mousedown', handleClickFora);
     }, []);
 
-    // Enviar com Enter
     function handleSubmit(e?: React.FormEvent) {
         if (e) e.preventDefault();
         const textoBusca = busca.trim();
@@ -117,7 +128,7 @@ export default function SearchBox() {
     }
 
     return (
-        <div ref={boxRef} className="relative w-full max-w-xl">
+        <div ref={boxRef} className="relative z-50 w-full max-w-xl">
             <form onSubmit={handleSubmit} role="search" aria-label="Buscar produtos">
                 <div className="relative">
                     <input
@@ -160,6 +171,9 @@ export default function SearchBox() {
                     {sugestoes.length > 0 ? (
                         sugestoes.map((produto, index) => (
                             <li
+                                ref={(el) => {
+                                    sugestoesRefs.current[index] = el;
+                                }}
                                 key={produto.slug}
                                 id={`suggestion-${produto.slug}`}
                                 role="option"
@@ -188,7 +202,6 @@ export default function SearchBox() {
                                         ),
                                     }}
                                 />
-
                             </li>
                         ))
                     ) : buscou ? (

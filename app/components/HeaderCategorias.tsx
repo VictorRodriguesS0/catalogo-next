@@ -60,7 +60,7 @@ export default function HeaderCategorias() {
     const fecharDropdownMobile = () => setCategoriaAberta(null);
 
     return (
-        <nav className="relative bg-white shadow-sm py-2 z-50">
+        <nav className="relative bg-white shadow-sm py-2 z-30">
             <div ref={containerRef} className="max-w-6xl mx-auto px-4 md:px-6">
                 <ul className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm">
                     {principaisCategorias.map((categoria) => {
