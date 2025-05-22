@@ -12,7 +12,13 @@ import {
     MapPin,
 } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
-import { useEffect, useState, useRef, type Dispatch, type SetStateAction } from 'react';
+import {
+    useEffect,
+    useState,
+    useRef,
+    type Dispatch,
+    type SetStateAction,
+} from 'react';
 import getIconeCategoria from '@/lib/IconeCategoria';
 import { AnimatePresence, motion } from 'framer-motion';
 import { loja } from '@/app/config/lojaConfig';
@@ -75,7 +81,7 @@ export default function HeaderTop({
 
                 <button
                     onClick={() => setMenuAberto(true)}
-                    className="md:hidden p-2 text-gray-600 hover:text-blue-600"
+                    className="p-2 text-gray-600 hover:text-blue-600"
                     aria-label="Abrir menu"
                 >
                     <Menu size={28} />
@@ -89,7 +95,7 @@ export default function HeaderTop({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 z-50 bg-black bg-opacity-40 md:hidden"
+                        className="fixed inset-0 z-50 bg-black bg-opacity-40"
                         onClick={() => setMenuAberto(false)}
                         aria-modal="true"
                         role="dialog"
