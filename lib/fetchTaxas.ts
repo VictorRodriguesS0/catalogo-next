@@ -1,15 +1,13 @@
 import Papa from 'papaparse';
+import { loja } from '@/app/config/lojaConfig';
 
 export interface Taxa {
     parcelas: string;
     taxa: number; // ex: 3.08
 }
 
-const TAXAS_CSV_URL =
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZo0cz1xfr9W9_FKCtUOPdHkySf0CwbjRIMmKLPuiAm5UKADrl9fDy8MnCDiDBmURS1qibVjiSbGu3/pub?gid=17280060&single=true&output=csv';
-
 export async function fetchTaxas(): Promise<Taxa[]> {
-    const response = await fetch(TAXAS_CSV_URL);
+    const response = await fetch(loja.csvTaxasUrl);
     const csvText = await response.text();
 
     return new Promise((resolve, reject) => {

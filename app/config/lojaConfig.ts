@@ -3,6 +3,7 @@ export const loja = {
     nome: 'Lojinha Eletrônicos',
     razaoSocial: 'Lj Informatica e Acessorios LTDA',
     cnpj: '59.159.610/0001-85',
+    whatsapp: '5561983453409',
     descricao: 'A melhor loja de eletrônicos do DF. Melhor preço, entrega no mesmo dia e parcelamento em até 18x.',
     pagamento: [
         '💳 Aceitamos dinheiro, débito e transferência à vista.',

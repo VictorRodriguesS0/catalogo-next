@@ -28,6 +28,10 @@ const Footer = () => {
                             <p key={i} className="text-xs text-gray-300">{linha}</p>
                         ))}
                     </div>
+                    <div className="text-sm mt-2">
+                        <p className="font-medium">Endereço:</p>
+                        <p className="text-xs text-gray-300">{loja.endereco}</p>
+                    </div>
                     <p className="text-xs text-gray-400">{loja.avisoLegal}</p>
                 </div>
 

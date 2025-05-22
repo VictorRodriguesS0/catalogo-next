@@ -4,10 +4,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { formatPreco } from '@/lib/formatPrice';
 import { Product } from '@/lib/fetchProducts';
-import { WHATSAPP_NUMERO } from '@/lib/whatsapp';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { useComparar } from '@/app/context/CompararContext';
 import { motion } from 'framer-motion';
+import { loja } from '../config/lojaConfig';
 
 interface ProductCardProps {
     product: Product;
@@ -25,7 +25,7 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
     const totalComJuros = precoNum * (1 + (taxa12x || 0) / 100);
     const parcela12x = totalComJuros / 12;
 
-    const linkZap = `https://wa.me/${WHATSAPP_NUMERO}?text=Tenho%20interesse%20no%20produto%20${encodeURIComponent(
+    const linkZap = `https://wa.me/${loja.whatsapp}?text=Tenho%20interesse%20no%20produto%20${encodeURIComponent(
         product.titulo
     )}`;
 

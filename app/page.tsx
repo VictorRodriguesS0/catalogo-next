@@ -4,7 +4,7 @@ import Reviews from './components/Reviews';
 import CategoriasDinamicas from './components/CategoriasDinamicas';
 import Link from 'next/link';
 import { FaTruck, FaWhatsapp, FaCreditCard } from 'react-icons/fa';
-import { WHATSAPP_NUMERO } from '@/lib/whatsapp';
+import { loja } from './config/lojaConfig';
 
 export const metadata = {
   title: 'Catálogo de Produtos | Sua Loja',
@@ -29,7 +29,7 @@ export default function Home() {
           <p className="font-semibold">Parcelamento em até 18x</p>
         </div>
         <Link
-          href={`https://wa.me/${WHATSAPP_NUMERO}`}
+          href={`https://wa.me/${loja.whatsapp}`}
           target="_blank"
           className="bg-purple-700 p-4 rounded-2xl shadow-md flex flex-col items-center hover:opacity-90"
         >

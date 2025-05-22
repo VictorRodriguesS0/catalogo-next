@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import { loja } from '@/app/config/lojaConfig';
 
 export interface Product {
     titulo: string;
@@ -43,8 +44,8 @@ interface RawProduct {
     NFC?: string;
 }
 
-const CSV_URL =
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZo0cz1xfr9W9_FKCtUOPdHkySf0CwbjRIMmKLPuiAm5UKADrl9fDy8MnCDiDBmURS1qibVjiSbGu3/pub?output=csv';
+
+
 
 function slugify(text: string): string {
     return text
@@ -68,7 +69,7 @@ function parseValor(raw: string | undefined): number | undefined {
 }
 
 export async function fetchProducts(): Promise<Product[]> {
-    const response = await fetch(CSV_URL);
+    const response = await fetch(loja.csvCatalogoUrl);
     const csvText = await response.text();
 
     return new Promise((resolve, reject) => {
