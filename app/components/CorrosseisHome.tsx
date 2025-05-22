@@ -3,6 +3,7 @@
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import ProductCarousel from './ProductCarousel';
 import { useEffect, useState } from 'react';
+import SkeletonProductCard from './SkeletonProductCard';
 
 export default function CarrosseisHome() {
     const { produtos } = useCatalogo();
@@ -22,6 +23,8 @@ export default function CarrosseisHome() {
 
     const produtosDestaque = produtos.filter((p) => p.destaque);
     const produtosPromocao = produtos.filter((p) => p.emPromocao);
+
+    const isCarregando = produtos.length === 0;
 
     return (
         <section className="space-y-8">
@@ -49,16 +52,26 @@ export default function CarrosseisHome() {
                 </button>
             </div>
 
-            <ProductCarousel
-                titulo="🌟 Destaques da loja"
-                produtos={produtosDestaque}
-                visualizacao={visualizacao}
-            />
-            <ProductCarousel
-                titulo="🔥 Promoções especiais"
-                produtos={produtosPromocao}
-                visualizacao={visualizacao}
-            />
+            {isCarregando ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <SkeletonProductCard key={i} />
+                    ))}
+                </div>
+            ) : (
+                <>
+                    <ProductCarousel
+                        titulo="🌟 Destaques da loja"
+                        produtos={produtosDestaque}
+                        visualizacao={visualizacao}
+                    />
+                    <ProductCarousel
+                        titulo="🔥 Promoções especiais"
+                        produtos={produtosPromocao}
+                        visualizacao={visualizacao}
+                    />
+                </>
+            )}
         </section>
     );
 }
