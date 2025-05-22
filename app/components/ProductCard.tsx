@@ -31,12 +31,6 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
     const isLista = visualizacao === 'lista';
     const corSlug = product.cor?.toLowerCase().replace(/[^a-z0-9]/g, '') ?? '';
     const corClasse = aliasesCores[corSlug as keyof typeof aliasesCores];
-    const corEstilo =
-        corClasse === 'rainbow'
-            ? 'bg-gradient-to-r from-pink-500 via-yellow-400 to-green-500'
-            : corClasse
-                ? `bg-${corClasse}`
-                : 'bg-gray-400';
 
     return (
         <motion.div
@@ -71,9 +65,10 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
                     <div className="flex flex-wrap gap-2 text-[11px] font-medium text-gray-700 mt-2 items-center">
                         {product.cor && (
                             <span className="bg-gray-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
-                                <span
-                                    className={`w-3 h-3 rounded-full border border-gray-300 ${corClasse === 'rainbow' ? 'bg-gradient-to-r from-pink-500 via-yellow-400 to-green-500' : corClasse ? `bg-${corClasse}` : 'bg-gray-400'}`}
-                                ></span>
+                                <span className={[
+                                    'w-3 h-3 rounded-full border border-gray-300',
+                                    corClasse || 'bg-gray-400'
+                                ].join(' ')}></span>
                                 {product.cor}
                             </span>
                         )}
@@ -119,7 +114,11 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
                     <button
                         onClick={(e) => {
                             e.preventDefault();
-                            jaComparado ? remover(product.slug) : adicionar(product);
+                            if (jaComparado) {
+                                remover(product.slug);
+                            } else {
+                                adicionar(product);
+                            }
                         }}
                         className={`w-full text-center border text-sm font-medium py-2 px-4 rounded-md mt-2 transition ${jaComparado ? 'border-red-500 text-red-600 hover:bg-red-100' : 'border-blue-500 text-blue-600 hover:bg-blue-100'}`}
                     >

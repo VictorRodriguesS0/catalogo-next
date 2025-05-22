@@ -1,45 +1,45 @@
-// cores.ts
-const cores = {
-    branco: 'white',
-    preto: 'black',
-    cinza: 'gray-500',
-    cinzaClaro: 'gray-200',
-    cinzaEscuro: 'gray-800',
-    grafite: 'gray-900',
-    "Cinza Grafite": 'neutral-800',
+// lib/aliasesCores.ts
+const cores: Record<string, string> = {
+    branco: 'bg-white',
+    preto: 'bg-black',
+    cinza: 'bg-gray-500',
+    cinzaClaro: 'bg-gray-200',
+    cinzaEscuro: 'bg-gray-800',
+    grafite: 'bg-gray-900',
+    "Cinza Grafite": 'bg-neutral-800',
 
-    vermelho: 'red-500',
-    vermelhoEscuro: 'red-700',
+    vermelho: 'bg-red-500',
+    vermelhoEscuro: 'bg-red-700',
 
-    verde: 'green-500',
-    verdeClaro: 'green-300',
+    verde: 'bg-green-500',
+    verdeClaro: 'bg-green-300',
 
-    azul: 'blue-500',
-    azulClaro: 'sky-400',
-    azulEscuro: 'blue-800',
+    azul: 'bg-blue-500',
+    azulClaro: 'bg-sky-400',
+    azulEscuro: 'bg-blue-800',
 
-    amarelo: 'yellow-400',
-    amareloEscuro: 'yellow-600',
-    dourado: 'yellow-500',
+    amarelo: 'bg-yellow-400',
+    amareloEscuro: 'bg-yellow-600',
+    dourado: 'bg-yellow-500',
 
-    laranja: 'orange-500',
-    laranjaEscuro: 'orange-700',
+    laranja: 'bg-orange-500',
+    laranjaEscuro: 'bg-orange-700',
 
-    rosa: 'pink-400',
-    rosaEscuro: 'pink-600',
+    rosa: 'bg-pink-400',
+    rosaEscuro: 'bg-pink-600',
 
-    roxo: 'purple-500',
-    roxoClaro: 'purple-300',
-    roxoEscuro: 'purple-800',
+    roxo: 'bg-purple-500',
+    roxoClaro: 'bg-purple-300',
+    roxoEscuro: 'bg-purple-800',
 
-    ciano: 'cyan-400',
-    teal: 'teal-500',
-    indigo: 'indigo-500',
+    ciano: 'bg-cyan-400',
+    teal: 'bg-teal-500',
+    indigo: 'bg-indigo-500',
 
-    marrom: 'amber-800',
-    bege: 'stone-300',
+    marrom: 'bg-amber-800',
+    bege: 'bg-stone-300',
 
-    colorido: 'rainbow',
+    colorido: 'bg-gradient-to-r from-pink-500 via-yellow-400 to-green-500',
 };
 
 export default cores;
