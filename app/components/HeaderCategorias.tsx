@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
+import getIconeCategoria from '@/lib/IconeCategoria';
 
 type Menu = Record<string, string[]>;
 
@@ -80,6 +81,7 @@ export default function HeaderCategorias() {
                                         { 'text-blue-700': isAberta }
                                     )}
                                 >
+                                    <span className="text-gray-500">{getIconeCategoria(categoria)}</span>
                                     {categoria}
                                     {temSub && (
                                         <ChevronDown
