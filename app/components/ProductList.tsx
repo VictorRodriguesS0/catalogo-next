@@ -29,7 +29,10 @@ export default function ProductList() {
         cores: searchParams.getAll('cor').map((c) => c.toLowerCase()),
         destaque: searchParams.get('destaque') === 'true',
         promocao: searchParams.get('promocao') === 'true',
+        tem5g: searchParams.get('5g') === 'true',
+        temNFC: searchParams.get('nfc') === 'true',
     };
+
 
     const ordenarParam = searchParams.get('ordenar') || '';
     const ordenarMap: Record<string, string> = {

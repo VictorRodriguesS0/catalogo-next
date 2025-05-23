@@ -41,7 +41,8 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-            className={`group border border-gray-200 hover:border-gray-400 rounded-2xl overflow-hidden shadow-sm bg-white transition cursor-pointer ${isLista ? 'flex flex-row w-full min-h-[160px]' : 'flex flex-col h-full w-full'}`}
+            className={`group border border-gray-200 hover:border-gray-400 rounded-2xl overflow-hidden shadow-sm bg-white transition cursor-pointer ${isLista ? 'flex flex-row w-full min-h-[160px]' : 'flex flex-col h-full w-full'} flex-grow`}
+            style={{ height: '100%' }}
         >
             <Link href={`/produtos/${product.slug}`} className="block h-full w-full">
                 <div className={`relative overflow-hidden ${isLista ? 'w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 self-center' : 'w-full h-48 sm:h-56'} bg-gray-50 flex items-center justify-center`}>
@@ -62,17 +63,14 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
                 </div>
 
                 <div className="flex flex-col justify-between p-4 flex-1 min-w-0">
-                    <h2 className="text-base font-semibold text-black leading-snug">
+                    <h2 className="text-base font-semibold text-black leading-snug h-[3.5rem] overflow-hidden">
                         {tituloLimitado}
                     </h2>
 
-                    <div className="flex flex-wrap gap-2 text-[11px] font-medium text-gray-700 mt-2 items-center">
+                    <div className="flex flex-wrap gap-2 text-[11px] font-medium text-gray-700 mt-2 items-center min-h-[1.5rem]">
                         {product.cor && (
                             <span className="bg-gray-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
-                                <span className={[
-                                    'w-3 h-3 rounded-full border border-gray-300',
-                                    corClasse || 'bg-gray-400'
-                                ].join(' ')}></span>
+                                <span className={['w-3 h-3 rounded-full border border-gray-300', corClasse || 'bg-gray-400'].join(' ')}></span>
                                 {product.cor}
                             </span>
                         )}
@@ -84,7 +82,7 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
 
                     <p className="text-xs text-gray-500 mt-1">{product.marca || ' '}</p>
 
-                    <div className="mt-1">
+                    <div className="mt-1 min-h-[4.5rem]">
                         {product.emPromocao && (
                             <p className="text-xs text-gray-400 line-through">
                                 {formatPreco(product.valor)}
@@ -93,17 +91,16 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
                         <p className="text-lg font-bold text-green-600">
                             {formatPreco(precoNum)} <span className="text-sm">no pix</span>
                         </p>
+                        {mostrarParcelamento && (
+                            <p className="text-xs text-[#5e17eb] flex items-center gap-1 mt-1">
+                                💳 12x de <strong>{formatPreco(parcela12x)}</strong>
+                            </p>
+                        )}
                     </div>
-
-                    {mostrarParcelamento && (
-                        <p className="text-xs text-[#5e17eb] flex items-center gap-1 mt-1">
-                            💳 12x de <strong>{formatPreco(parcela12x)}</strong>
-                        </p>
-                    )}
                 </div>
             </Link>
 
-            <div className="px-4 pb-4">
+            <div className="px-4 pb-4 mt-auto">
                 <a
                     href={linkZap}
                     target="_blank"

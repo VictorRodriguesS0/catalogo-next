@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -12,7 +11,6 @@ export default function CalculadoraPage() {
     const searchParams = useSearchParams();
     const { todasTaxas } = useCatalogo();
 
-    const [valorFormatado, setValorFormatado] = useState('');
     const [entradaFormatada, setEntradaFormatada] = useState('');
     const [valorNumerico, setValorNumerico] = useState(0);
     const [entradaNumerica, setEntradaNumerica] = useState(0);
@@ -28,7 +26,6 @@ export default function CalculadoraPage() {
         if (valorParam) {
             const valor = parseFloat(valorParam);
             setValorNumerico(valor);
-            setValorFormatado(formatarMoeda(valor));
         }
 
         if (entradaParam) {
@@ -87,7 +84,6 @@ export default function CalculadoraPage() {
                 link.download = 'simulador-parcelamento.png';
                 link.click();
             } else {
-                // @ts-ignore
                 await navigator.clipboard.write([
                     new ClipboardItem({ 'image/png': blob })
                 ]);
@@ -120,7 +116,6 @@ export default function CalculadoraPage() {
 
         if (tipo === 'valor') {
             setValorNumerico(valor);
-            setValorFormatado(formatarMoeda(valor));
         } else {
             setEntradaNumerica(valor);
             setEntradaFormatada(formatarMoeda(valor));

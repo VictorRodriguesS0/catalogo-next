@@ -9,6 +9,8 @@ interface Filtros {
     cores?: string[];
     destaque?: boolean;
     promocao?: boolean;
+    tem5g?: boolean;
+    temNFC?: boolean;
 }
 
 export function filtrarProdutos(produtos: Product[], filtros: Filtros) {
@@ -19,6 +21,8 @@ export function filtrarProdutos(produtos: Product[], filtros: Filtros) {
         cores = [],
         destaque = false,
         promocao = false,
+        tem5g = false,
+        temNFC = false,
     } = filtros;
 
     return produtos.filter((produto) => {
@@ -39,7 +43,18 @@ export function filtrarProdutos(produtos: Product[], filtros: Filtros) {
         const matchCor = cores.length === 0 || cores.includes(produto.cor?.toLowerCase() || '');
         const matchDestaque = !destaque || produto.destaque;
         const matchPromocao = !promocao || produto.emPromocao;
+        const match5g = !tem5g || produto.tem5g;
+        const matchNfc = !temNFC || produto.temNFC;
 
-        return matchCategoria && matchBusca && matchMarca && matchCor && matchDestaque && matchPromocao;
+        return (
+            matchCategoria &&
+            matchBusca &&
+            matchMarca &&
+            matchCor &&
+            matchDestaque &&
+            matchPromocao &&
+            match5g &&
+            matchNfc
+        );
     });
 }
