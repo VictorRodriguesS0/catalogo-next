@@ -1,3 +1,4 @@
+// melhorias aplicadas na página do produto
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -6,6 +7,8 @@ import { formatPreco } from '@/lib/formatPrice';
 import { fetchTaxas, Taxa } from '@/lib/fetchTaxas';
 import { Product } from '@/lib/fetchProducts';
 import ProdutosRelacionados from '@/app/components/ProdutosRelacionados';
+import { Share2 } from 'lucide-react';
+import { MdOutlineImageNotSupported } from 'react-icons/md';
 
 interface Props {
     product: Product;
@@ -18,6 +21,7 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
     const [taxas, setTaxas] = useState<Taxa[]>([]);
     const [mostrarTaxa, setMostrarTaxa] = useState(false);
     const [verMais, setVerMais] = useState(false);
+    const [copiado, setCopiado] = useState(false);
     const modalRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -63,11 +67,27 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
         }
     };
 
+    const compartilhar = () => {
+        navigator.clipboard.writeText(window.location.href);
+        setCopiado(true);
+        setTimeout(() => setCopiado(false), 2000);
+    };
+
     return (
         <main className="p-4 md:p-6 max-w-6xl mx-auto font-sans space-y-12">
             <div className="flex flex-col md:flex-row gap-10">
                 <div className="flex-1 max-w-full md:max-w-md">
-                    <GaleriaProduto imagens={imagens} titulo={product.titulo} />
+                    {
+                        imagens.length > 0 ? (
+                            <GaleriaProduto imagens={imagens} titulo={product.titulo} />
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-64 bg-gray-100 text-gray-500 rounded-lg">
+                                <span className="text-sm mb-2">Sem imagem disponível</span>
+                                <MdOutlineImageNotSupported size={32} />
+
+                            </div>
+                        )
+                    }
                 </div>
 
                 <div className="flex-1">
@@ -90,7 +110,17 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                         {product.titulo}
                     </h1>
 
-                    {/* Destaques técnicos */}
+                    <button
+                        onClick={compartilhar}
+                        className="flex items-center gap-2 text-sm text-blue-600 hover:underline mb-4"
+                    >
+                        <Share2 size={16} /> Compartilhar link do produto
+                    </button>
+
+                    {copiado && (
+                        <p className="text-xs text-green-600 mb-2">Link copiado para a área de transferência!</p>
+                    )}
+
                     {(product.tem5g || product.temNFC) && (
                         <div className="flex flex-wrap gap-2 text-sm mt-1 mb-4">
                             {product.tem5g && (
@@ -106,7 +136,6 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                         </div>
                     )}
 
-                    {/* Especificações */}
                     <div className="text-sm text-gray-700 mb-4 space-y-1">
                         <h3 className="font-semibold text-base mb-1">📋 Especificações:</h3>
                         {product.marca && <p><strong>Marca:</strong> {product.marca}</p>}
@@ -133,7 +162,10 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                     )}
 
                     {preco > 50 && (
-                        <p className="text-sm text-gray-800 mb-3 flex items-center gap-1">
+                        <p
+                            className="text-sm text-gray-800 mb-3 flex items-center gap-1"
+                            title="Parcelamos em até 18x com juros nos cartões Mastercard, Visa e Elo"
+                        >
                             <span>💳</span>
                             12x de <strong>{formatarMoeda(parcela12x)}</strong>
                         </p>
