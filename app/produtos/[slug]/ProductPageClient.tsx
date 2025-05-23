@@ -90,12 +90,31 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                         {product.titulo}
                     </h1>
 
-                    <div className="text-sm text-gray-600 mb-3 space-y-1">
+                    {/* Destaques técnicos */}
+                    {(product.tem5g || product.temNFC) && (
+                        <div className="flex flex-wrap gap-2 text-sm mt-1 mb-4">
+                            {product.tem5g && (
+                                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded font-semibold text-xs uppercase">
+                                    📶 5G
+                                </span>
+                            )}
+                            {product.temNFC && (
+                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded font-semibold text-xs uppercase">
+                                    📡 NFC
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Especificações */}
+                    <div className="text-sm text-gray-700 mb-4 space-y-1">
+                        <h3 className="font-semibold text-base mb-1">📋 Especificações:</h3>
                         {product.marca && <p><strong>Marca:</strong> {product.marca}</p>}
                         {product.cor && <p><strong>Cor:</strong> {product.cor}</p>}
-                        {product.armazenamento && <p><strong>Armazenamento:</strong> {product.armazenamento}</p>}
-                        {product.ram && <p><strong>Memória RAM:</strong> {product.ram}</p>}
-                        <p><strong>Categoria:</strong> {product.categoria}</p>
+                        {product.armazenamento && <p className="text-base font-semibold"><strong>Armazenamento:</strong> {product.armazenamento}</p>}
+                        {product.ram && <p className="text-base font-semibold"><strong>Memória RAM:</strong> {product.ram}</p>}
+                        {product.categoria && <p><strong>Categoria:</strong> {product.categoria}</p>}
+                        {product.subcategoria && <p><strong>Subcategoria:</strong> {product.subcategoria}</p>}
                     </div>
 
                     {product.promocao ? (
@@ -142,10 +161,13 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                     </a>
 
                     {product.descricao && (
-                        <div
-                            className="prose prose-sm md:prose lg:prose-lg max-w-none leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: product.descricao }}
-                        />
+                        <div className="mt-10">
+                            <h3 className="text-xl font-semibold mb-3 text-gray-800">📝 Descrição do produto</h3>
+                            <div
+                                className="prose prose-sm md:prose lg:prose-lg max-w-none leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: product.descricao }}
+                            />
+                        </div>
                     )}
                 </div>
             </div>

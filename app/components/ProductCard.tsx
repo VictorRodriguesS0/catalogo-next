@@ -9,6 +9,8 @@ import { useComparar } from '@/app/context/CompararContext';
 import { motion } from 'framer-motion';
 import { loja } from '../config/lojaConfig';
 import aliasesCores from '@/lib/aliasesCores';
+import { RiSdCardMiniLine } from 'react-icons/ri';
+import { MdMemory } from 'react-icons/md';
 
 interface ProductCardProps {
     product: Product;
@@ -63,19 +65,30 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
                 </div>
 
                 <div className="flex flex-col justify-between p-4 flex-1 min-w-0">
-                    <h2 className="text-base font-semibold text-black leading-snug h-[3.5rem] overflow-hidden">
+                    <h2 className="text-base font-semibold text-black leading-snug min-h-[3.5rem] sm:min-h-fit overflow-hidden">
                         {tituloLimitado}
                     </h2>
 
                     <div className="flex flex-wrap gap-2 text-[11px] font-medium text-gray-700 mt-2 items-center min-h-[1.5rem]">
                         {product.cor && (
                             <span className="bg-gray-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
-                                <span className={['w-3 h-3 rounded-full border border-gray-300', corClasse || 'bg-gray-400'].join(' ')}></span>
+                                <span className={[
+                                    'w-3 h-3 rounded-full border border-gray-300',
+                                    corClasse || 'bg-gray-400'
+                                ].join(' ')}></span>
                                 {product.cor}
                             </span>
                         )}
-                        {product.ram && <span className="bg-gray-100 px-2 py-0.5 rounded">RAM: {product.ram}</span>}
-                        {product.armazenamento && <span className="bg-gray-100 px-2 py-0.5 rounded">Armazenamento: {product.armazenamento}</span>}
+                        {product.ram && (
+                            <span className="bg-gray-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                                <MdMemory size={12} /> {product.ram}
+                            </span>
+                        )}
+                        {product.armazenamento && (
+                            <span className="bg-gray-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                                <RiSdCardMiniLine size={12} /> {product.armazenamento}
+                            </span>
+                        )}
                         {product.temNFC && <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded">NFC</span>}
                         {product.tem5g && <span className="bg-purple-100 text-purple-600 px-2 py-0.5 rounded">5G</span>}
                     </div>
