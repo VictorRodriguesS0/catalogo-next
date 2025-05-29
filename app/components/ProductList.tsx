@@ -43,7 +43,10 @@ export default function ProductList() {
     };
     const ordenar = ordenarMap[ordenarParam] || '';
 
-    const produtosFiltrados = filtrarProdutos(produtos, filtros);
+    const produtosFiltrados = filtrarProdutos(
+        produtos.filter((p) => p.disponivel !== false && String(p.inativo).toLowerCase() !== 'true'),
+        filtros
+    );
 
     function getValorParaOrdenacao(produto: Product): number {
         const valor = produto.promocao ?? produto.valor;

@@ -1,5 +1,6 @@
 import { fetchProducts } from '@/lib/fetchProducts';
 import { NextResponse } from 'next/server';
+import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 
 export async function GET() {
     const produtos = await fetchProducts();
@@ -7,7 +8,7 @@ export async function GET() {
     const estrutura: Record<string, Set<string>> = {};
 
     for (const p of produtos) {
-        if (!p.categoria || String(p.inativo).toLowerCase() === 'true') continue;
+        if (!p.categoria || !isProdutoAtivo(p)) continue;
 
         const categoria = p.categoria.trim();
         const subcategoria = p.subcategoria?.trim();

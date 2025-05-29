@@ -4,18 +4,23 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useCatalogo } from '@/app/context/CatalogoContext';
+import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 
 export default function CategoriasDinamicas() {
     const { produtos } = useCatalogo();
     const [mostrarTodas, setMostrarTodas] = useState(false);
 
+
     const categorias = useMemo(() => {
         const unicas = new Set<string>();
-        produtos.forEach((p) => {
-            if (p.categoria) unicas.add(p.categoria);
-        });
+        produtos
+            .filter(isProdutoAtivo)
+            .forEach((p) => {
+                if (p.categoria) unicas.add(p.categoria);
+            });
         return Array.from(unicas);
     }, [produtos]);
+
 
     const cores = ['bg-purple-100', 'bg-yellow-100'];
     const visiveis = mostrarTodas ? categorias : categorias.slice(0, 8);

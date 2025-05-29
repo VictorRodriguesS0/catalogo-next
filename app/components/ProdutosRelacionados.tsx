@@ -2,6 +2,7 @@
 
 import { Product } from '@/lib/fetchProducts';
 import ProductCard from './ProductCard';
+import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 
 interface ProdutosRelacionadosProps {
     produtoAtual: Product;
@@ -13,10 +14,8 @@ export default function ProdutosRelacionados({ produtoAtual, todosProdutos }: Pr
         .filter((p) =>
             p.slug !== produtoAtual.slug &&
             p.categoria === produtoAtual.categoria &&
-            (
-                (p.marca && p.marca === produtoAtual.marca) ||
-                (p.cor && p.cor === produtoAtual.cor)
-            )
+            (p.marca === produtoAtual.marca || p.cor === produtoAtual.cor) &&
+            isProdutoAtivo(p)
         )
         .slice(0, 6);
 

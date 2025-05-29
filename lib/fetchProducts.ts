@@ -112,8 +112,9 @@ export async function fetchProducts(): Promise<Product[]> {
                                 }
                             }
 
+                            const planilhaInativo = String(p.inativo || '').trim().toLowerCase() === 'true';
                             const inativoPorEstoque = idTiny && idTiny !== 'infinito' && (estoqueSaldo ?? 0) <= 0;
-                            const disponivel = !inativoPorEstoque;
+                            const disponivel = !(planilhaInativo || inativoPorEstoque);
 
                             return {
                                 ...p,
@@ -139,7 +140,7 @@ export async function fetchProducts(): Promise<Product[]> {
                                 idTiny,
                                 estoqueSaldo,
                                 disponivel,
-                                inativo: inativoPorEstoque ? 'true' : p.inativo?.toLowerCase(),
+                                inativo: planilhaInativo || inativoPorEstoque ? 'true' : 'false',
                             };
                         })
                 );
@@ -148,7 +149,7 @@ export async function fetchProducts(): Promise<Product[]> {
                     (p) => String(p.inativo).toLowerCase() !== 'true'
                 );
 
-                resolve(ativos);
+                resolve(validProducts);
             },
             error: (error: unknown) => reject(error),
         });

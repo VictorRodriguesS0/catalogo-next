@@ -6,6 +6,7 @@ import ProductCard from './ProductCard';
 import { Product } from '@/lib/fetchProducts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 
 interface Props {
     titulo: string;
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export default function ProductCarousel({ titulo, produtos, visualizacao = 'grade' }: Props) {
+    const produtosAtivos = produtos.filter(isProdutoAtivo);
+
     const [sliderRef, slider] = useKeenSlider<HTMLDivElement>({
         slides: {
             perView: 1.3,
@@ -29,7 +32,7 @@ export default function ProductCarousel({ titulo, produtos, visualizacao = 'grad
         },
     });
 
-    if (produtos.length === 0) return null;
+    if (produtosAtivos.length === 0) return null;
 
     const isLista = visualizacao === 'lista';
 
@@ -49,7 +52,7 @@ export default function ProductCarousel({ titulo, produtos, visualizacao = 'grad
                     className="flex flex-col gap-4"
                 >
                     <AnimatePresence>
-                        {produtos.map((p) => (
+                        {produtosAtivos.map((p) => (
                             <motion.div
                                 key={p.slug}
                                 initial={{ opacity: 0, y: 10 }}
@@ -84,7 +87,7 @@ export default function ProductCarousel({ titulo, produtos, visualizacao = 'grad
                         ref={sliderRef}
                         className="keen-slider bg-gray-50 rounded-xl p-2 sm:p-4 shadow-sm"
                     >
-                        {produtos.map((p) => (
+                        {produtosAtivos.map((p) => (
                             <div
                                 key={p.slug}
                                 className="keen-slider__slide h-full flex flex-col"

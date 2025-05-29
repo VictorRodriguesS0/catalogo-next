@@ -4,6 +4,7 @@ import { useCatalogo } from '@/app/context/CatalogoContext';
 import ProductCarousel from './ProductCarousel';
 import { useEffect, useState } from 'react';
 import SkeletonProductCard from './SkeletonProductCard';
+import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 
 export default function CarrosseisHome() {
     const { produtos } = useCatalogo();
@@ -21,20 +22,19 @@ export default function CarrosseisHome() {
         localStorage.setItem('visualizacao', tipo);
     }
 
-    const produtosDestaque = produtos.filter((p) => p.destaque);
-    const produtosPromocao = produtos.filter((p) => p.emPromocao);
-
+    const produtosAtivos = produtos.filter(isProdutoAtivo);
+    const produtosDestaque = produtosAtivos.filter((p) => p.destaque);
+    const produtosPromocao = produtosAtivos.filter((p) => p.emPromocao);
     const isCarregando = produtos.length === 0;
 
     return (
         <section className="space-y-8">
-            {/* Toggle visualização */}
             <div className="flex justify-end items-center gap-2 text-sm text-gray-700 mb-2 pr-2">
                 <button
                     onClick={() => alterarVisualizacao('grade')}
                     className={`px-2 py-1 rounded border ${visualizacao === 'grade'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white border-gray-300'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white border-gray-300'
                         }`}
                     title="Visualização em grade"
                 >
@@ -43,8 +43,8 @@ export default function CarrosseisHome() {
                 <button
                     onClick={() => alterarVisualizacao('lista')}
                     className={`px-2 py-1 rounded border ${visualizacao === 'lista'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white border-gray-300'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white border-gray-300'
                         }`}
                     title="Visualização em lista"
                 >

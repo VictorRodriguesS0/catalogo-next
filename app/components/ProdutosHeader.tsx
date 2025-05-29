@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { filtrarProdutos } from '@/lib/filtrarProdutos';
 import { aliasesCategorias } from '@/lib/aliasesCategorias';
+import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 
 export default function ProdutosHeader() {
     const { produtos } = useCatalogo();
@@ -43,7 +44,10 @@ export default function ProdutosHeader() {
     };
 
 
-    const produtosFiltrados = filtrarProdutos(produtos, filtros);
+    const produtosFiltrados = filtrarProdutos(
+        produtos.filter(isProdutoAtivo),
+        filtros
+    );
 
     function formatarCategoria(nome: string) {
         const lower = nome

@@ -8,6 +8,7 @@ import ProdutosRelacionados from '@/app/components/ProdutosRelacionados';
 import { Share2 } from 'lucide-react';
 import { MdOutlineImageNotSupported } from 'react-icons/md';
 import { useCatalogo } from '@/app/context/CatalogoContext';
+import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 
 interface Props {
     product: Product;
@@ -284,7 +285,9 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                 </div>
             )}
 
-            <ProdutosRelacionados produtoAtual={product} todosProdutos={todosProdutos} />
-        </main>
+            <ProdutosRelacionados
+                produtoAtual={product}
+                todosProdutos={todosProdutos.filter(isProdutoAtivo)}
+            />        </main>
     );
 }

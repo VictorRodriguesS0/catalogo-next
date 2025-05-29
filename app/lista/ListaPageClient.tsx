@@ -4,12 +4,16 @@ import { fetchProducts } from '@/lib/fetchProducts';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 
 export default function ListaPageClient() {
     const [produtos, setProdutos] = useState<Awaited<ReturnType<typeof fetchProducts>>>([]);
 
     useEffect(() => {
-        fetchProducts().then(setProdutos);
+        fetchProducts().then((produtos) => {
+            const ativos = produtos.filter(isProdutoAtivo);
+            setProdutos(ativos);
+        });
     }, []);
 
     const produtosPorCategoria: Record<string, Record<string, typeof produtos>> = {};
