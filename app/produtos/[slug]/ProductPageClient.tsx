@@ -9,6 +9,7 @@ import { Share2 } from 'lucide-react';
 import { MdOutlineImageNotSupported } from 'react-icons/md';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
+import TabelaParcelamentoProduto from '@/app/components/TabelaParcelamentoProduto';
 
 interface Props {
     product: Product;
@@ -44,19 +45,12 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
     const taxa12x = todasTaxas.find((t) => t.parcelas.replace('x', '') === '12')?.taxa || 0;
     const total12x = preco * (1 + taxa12x / 100);
     const parcela12x = total12x / 12;
-    const taxasVisiveis = verMais ? todasTaxas : todasTaxas.slice(0, 12);
 
     const formatarMoeda = (valor: number): string =>
         new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL',
         }).format(valor);
-
-    const calcularJurosAoMes = (taxaTotal: number, parcelas: number): string => {
-        const txDecimal = taxaTotal / 100;
-        const mensal = Math.pow(1 + txDecimal, 1 / parcelas) - 1;
-        return (mensal * 100).toFixed(2) + '% ao mês';
-    };
 
     const fecharModalExterno = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target === modalRef.current) {
@@ -227,60 +221,14 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                         </button>
                         <h2 className="text-2xl font-bold mb-4">Parcelamento</h2>
 
-                        <div className="w-full overflow-x-auto">
-                            <table className="min-w-full border border-gray-200 text-sm rounded-lg overflow-hidden">
-                                <thead className="bg-blue-100 text-gray-800">
-                                    <tr>
-                                        <th className="border px-4 py-2 text-left">Parcelas</th>
-                                        {mostrarTaxa && (
-                                            <th className="border px-4 py-2 text-left">Juros compostos</th>
-                                        )}
-                                        <th className="border px-4 py-2 text-left">Valor da Parcela</th>
-                                        <th className="border px-4 py-2 text-left">Total no Cartão</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white">
-                                    {taxasVisiveis.map(({ parcelas, taxa }) => {
-                                        const taxaDecimal = taxa / 100;
-                                        const totalComTaxa = preco * (1 + taxaDecimal);
-                                        const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
-                                        const valorParcela = totalComTaxa / qtdParcelas;
-                                        const jurosMes = calcularJurosAoMes(taxa, qtdParcelas);
-
-                                        return (
-                                            <tr key={parcelas}>
-                                                <td className="border px-4 py-2">{parcelas}</td>
-                                                {mostrarTaxa && (
-                                                    <td className="border px-4 py-2">{jurosMes}</td>
-                                                )}
-                                                <td className="border px-4 py-2">{formatarMoeda(valorParcela)}</td>
-                                                <td className="border px-4 py-2 font-semibold">{formatarMoeda(totalComTaxa)}</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="mt-4 text-center space-x-4">
-                            <button
-                                onClick={() => {
-                                    setVerMais(!verMais);
-                                    if (!verMais) setMostrarTaxa(false);
-                                }}
-                                className="text-xs text-blue-600 underline hover:text-blue-800"
-                            >
-                                {verMais ? 'Mostrar menos parcelas' : 'Ver mais parcelas'}
-                            </button>
-                            {verMais && (
-                                <button
-                                    onClick={() => setMostrarTaxa(!mostrarTaxa)}
-                                    className="text-xs text-gray-500 underline hover:text-gray-800"
-                                >
-                                    {mostrarTaxa ? 'Ocultar taxas' : 'Mostrar taxas'}
-                                </button>
-                            )}
-                        </div>
+                        <TabelaParcelamentoProduto
+                            product={product}
+                            preco={preco}
+                            mostrarTaxa={mostrarTaxa}
+                            verMais={verMais}
+                            onToggleVerMais={() => setVerMais(!verMais)}
+                            onToggleMostrarTaxa={() => setMostrarTaxa(!mostrarTaxa)}
+                        />
                     </div>
                 </div>
             )}
@@ -288,6 +236,7 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
             <ProdutosRelacionados
                 produtoAtual={product}
                 todosProdutos={todosProdutos.filter(isProdutoAtivo)}
-            />        </main>
+            />
+        </main>
     );
 }
