@@ -8,6 +8,7 @@ import { CompararProvider } from "@/app/context/CompararContext";
 import Breadcrumbs from "@/app/components/Breadcrumbs";
 import { Suspense } from "react";
 import BotaoCompararFlutuante from "./components/BotaoCompararFlutuante";
+import PageTransition from "./components/PageTransition";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,9 @@ export default function RootLayout({
               <Suspense fallback={null}>
                 <Breadcrumbs />
               </Suspense>
-              {children}
+              <PageTransition>
+                {children}
+              </PageTransition>
             </main>
 
             <BotaoCompararFlutuante />

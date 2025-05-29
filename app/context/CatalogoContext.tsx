@@ -11,6 +11,7 @@ interface CatalogoContextProps {
     cores: string[];
     taxa12x: number | null;
     todasTaxas: Taxa[];
+    carregando: boolean;
 }
 
 const CatalogoContext = createContext<CatalogoContextProps>({
@@ -20,6 +21,7 @@ const CatalogoContext = createContext<CatalogoContextProps>({
     cores: [],
     taxa12x: null,
     todasTaxas: [],
+    carregando: true,
 });
 
 export function CatalogoProvider({ children }: { children: React.ReactNode }) {
@@ -30,6 +32,7 @@ export function CatalogoProvider({ children }: { children: React.ReactNode }) {
     const [categorias, setCategorias] = useState<string[]>([]);
     const [marcas, setMarcas] = useState<string[]>([]);
     const [cores, setCores] = useState<string[]>([]);
+    const [carregando, setCarregando] = useState(true);
 
     useEffect(() => {
         async function carregarDados() {
@@ -58,13 +61,12 @@ export function CatalogoProvider({ children }: { children: React.ReactNode }) {
             if (t12) setTaxa12x(t12.taxa);
         }
 
-        carregarDados();
-        carregarTaxas();
+        Promise.all([carregarDados(), carregarTaxas()]).finally(() => setCarregando(false));
     }, []);
 
     return (
         <CatalogoContext.Provider
-            value={{ produtos, categorias, marcas, cores, taxa12x, todasTaxas }}
+            value={{ produtos, categorias, marcas, cores, taxa12x, todasTaxas, carregando }}
         >
             {children}
         </CatalogoContext.Provider>

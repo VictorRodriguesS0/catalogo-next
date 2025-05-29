@@ -3,11 +3,11 @@
 import { useEffect, useState, useRef } from 'react';
 import GaleriaProduto from '@/app/components/GaleriaProduto';
 import { formatPreco } from '@/lib/formatPrice';
-import { fetchTaxas, Taxa } from '@/lib/fetchTaxas';
 import { Product } from '@/lib/fetchProducts';
 import ProdutosRelacionados from '@/app/components/ProdutosRelacionados';
 import { Share2 } from 'lucide-react';
 import { MdOutlineImageNotSupported } from 'react-icons/md';
+import { useCatalogo } from '@/app/context/CatalogoContext';
 
 interface Props {
     product: Product;
@@ -17,15 +17,12 @@ interface Props {
 
 export default function ProductPageClient({ product, imagens, todosProdutos }: Props) {
     const [showModal, setShowModal] = useState(false);
-    const [taxas, setTaxas] = useState<Taxa[]>([]);
     const [mostrarTaxa, setMostrarTaxa] = useState(false);
     const [verMais, setVerMais] = useState(false);
     const [copiado, setCopiado] = useState(false);
     const modalRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        fetchTaxas().then(setTaxas);
-    }, []);
+    const { todasTaxas } = useCatalogo();
 
     useEffect(() => {
         document.body.style.overflow = showModal ? 'hidden' : '';
@@ -43,10 +40,10 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
     }, []);
 
     const preco = product.promocao ?? product.valor ?? 0;
-    const taxa12x = taxas.find((t) => t.parcelas.replace('x', '') === '12')?.taxa || 0;
+    const taxa12x = todasTaxas.find((t) => t.parcelas.replace('x', '') === '12')?.taxa || 0;
     const total12x = preco * (1 + taxa12x / 100);
     const parcela12x = total12x / 12;
-    const taxasVisiveis = verMais ? taxas : taxas.slice(0, 12);
+    const taxasVisiveis = verMais ? todasTaxas : todasTaxas.slice(0, 12);
 
     const formatarMoeda = (valor: number): string =>
         new Intl.NumberFormat('pt-BR', {
