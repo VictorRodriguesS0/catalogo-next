@@ -62,7 +62,7 @@ export default function HeaderCategorias() {
     return (
         <nav className="relative bg-white shadow-sm py-2 z-30">
             <div ref={containerRef} className="max-w-6xl mx-auto px-4 md:px-6">
-                <ul className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm">
+                <ul className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm ">
                     {principaisCategorias.map((categoria) => {
                         const isAberta = categoriaAberta === categoria;
                         const temSub = menu[categoria]?.length > 0;
@@ -96,15 +96,18 @@ export default function HeaderCategorias() {
                                 {temSub && (
                                     <ul
                                         className={clsx(
-                                            'absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-60 transition-all duration-200 ease-out',
+                                            'absolute top-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-50 transition-all duration-200 ease-out',
                                             {
+                                                'left-0 right-0 w-full': typeof window !== 'undefined' && window.innerWidth < 768,
+                                                'left-1/2 -translate-x-1/2 w-56': typeof window !== 'undefined' && window.innerWidth >= 768,
                                                 'opacity-100 visible translate-y-0 scale-100': isAberta,
                                                 'opacity-0 invisible translate-y-1 scale-95': !isAberta,
-                                            },
-                                            'group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100'
+                                            }
                                         )}
                                         style={{ maxHeight: '320px', overflowY: 'auto' }}
                                     >
+
+
                                         <li>
                                             <Link
                                                 href={`/produtos?categoria=${encodeURIComponent(categoria)}`}
