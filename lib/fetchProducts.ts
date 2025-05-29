@@ -145,10 +145,6 @@ export async function fetchProducts(): Promise<Product[]> {
                         })
                 );
 
-                const ativos = validProducts.filter(
-                    (p) => String(p.inativo).toLowerCase() !== 'true'
-                );
-
                 resolve(validProducts);
             },
             error: (error: unknown) => reject(error),
