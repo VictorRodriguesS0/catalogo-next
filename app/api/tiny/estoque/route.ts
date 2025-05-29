@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-    const { idTiny } = await req.json();
+    const { idTiny }: { idTiny: string } = await req.json();
     const token = process.env.TINY_API_TOKEN;
 
     if (!token) {
@@ -28,9 +28,10 @@ export async function POST(req: Request) {
         }
 
         return NextResponse.json({
-            saldo: parseFloat(data.retorno.produto.saldo || 0),
+            saldo: parseFloat(data.retorno.produto.saldo || '0'),
         });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'Erro inesperado' }, { status: 500 });
+    } catch (error) {
+        const typedError = error as Error;
+        return NextResponse.json({ error: typedError.message || 'Erro inesperado' }, { status: 500 });
     }
 }
