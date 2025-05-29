@@ -1,4 +1,3 @@
-// melhorias aplicadas na página do produto
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -77,20 +76,23 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
         <main className="p-4 md:p-6 max-w-6xl mx-auto font-sans space-y-12">
             <div className="flex flex-col md:flex-row gap-10">
                 <div className="flex-1 max-w-full md:max-w-md">
-                    {
-                        imagens.length > 0 ? (
-                            <GaleriaProduto imagens={imagens} titulo={product.titulo} />
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-64 bg-gray-100 text-gray-500 rounded-lg">
-                                <span className="text-sm mb-2">Sem imagem disponível</span>
-                                <MdOutlineImageNotSupported size={32} />
-
-                            </div>
-                        )
-                    }
+                    {imagens.length > 0 ? (
+                        <GaleriaProduto imagens={imagens} titulo={product.titulo} />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-64 bg-gray-100 text-gray-500 rounded-lg">
+                            <span className="text-sm mb-2">Sem imagem disponível</span>
+                            <MdOutlineImageNotSupported size={32} />
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1">
+                    {!product.disponivel && (
+                        <div className="text-red-600 bg-red-100 border border-red-300 px-4 py-3 rounded mb-4 font-semibold">
+                            Produto indisponível no momento
+                        </div>
+                    )}
+
                     {(product.promocao || product.destaque) && (
                         <div className="mb-2 flex flex-wrap gap-2">
                             {product.destaque && (
@@ -146,7 +148,13 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                         {product.subcategoria && <p><strong>Subcategoria:</strong> {product.subcategoria}</p>}
                     </div>
 
-                    {product.promocao ? (
+                    {product.estoqueSaldo !== undefined && product.estoqueSaldo <= 3 && product.estoqueSaldo > 0 && (
+                        <p className="text-sm text-red-600 font-semibold mb-2">
+                            Últimas unidades
+                        </p>
+                    )}
+
+                    {!product.disponivel ? null : product.promocao ? (
                         <>
                             <p className="text-2xl font-bold text-red-600 mb-1">
                                 {formatPreco(product.promocao)} <span className="text-base">no pix</span>
@@ -161,36 +169,37 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                         </p>
                     )}
 
-                    {preco > 50 && (
-                        <p
-                            className="text-sm text-gray-800 mb-3 flex items-center gap-1"
-                            title="Parcelamos em até 18x com juros nos cartões Mastercard, Visa e Elo"
-                        >
+                    {!product.disponivel ? null : preco > 50 && (
+                        <p className="text-sm text-gray-800 mb-3 flex items-center gap-1">
                             <span>💳</span>
                             12x de <strong>{formatarMoeda(parcela12x)}</strong>
                         </p>
                     )}
 
-                    <div className="text-sm text-blue-700 bg-blue-50 rounded-md px-3 py-2 mb-4">
-                        Entregamos no mesmo dia para <strong>Brasília e entorno</strong> via motoboy 🚚 <br />
-                        <span className="text-gray-600">(Consulte o valor do frete pelo WhatsApp)</span>
-                    </div>
+                    {!product.disponivel ? null : (
+                        <>
+                            <div className="text-sm text-blue-700 bg-blue-50 rounded-md px-3 py-2 mb-4">
+                                Entregamos no mesmo dia para <strong>Brasília e entorno</strong> via motoboy 🚚 <br />
+                                <span className="text-gray-600">(Consulte o valor do frete pelo WhatsApp)</span>
+                            </div>
 
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="mb-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition"
-                    >
-                        Ver parcelamento
-                    </button>
+                            <button
+                                onClick={() => setShowModal(true)}
+                                className="mb-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition"
+                            >
+                                Ver parcelamento
+                            </button>
 
-                    <a
-                        href={`https://wa.me/5561983453409?text=Tenho interesse no produto ${encodeURIComponent(product.titulo)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mb-6 w-full block bg-green-600 hover:bg-green-700 text-white text-center font-semibold py-3 px-4 rounded-xl transition"
-                    >
-                        Comprar no WhatsApp
-                    </a>
+                            <a
+                                href={`https://wa.me/5561983453409?text=Tenho interesse no produto ${encodeURIComponent(product.titulo)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mb-6 w-full block bg-green-600 hover:bg-green-700 text-white text-center font-semibold py-3 px-4 rounded-xl transition"
+                            >
+                                Comprar no WhatsApp
+                            </a>
+                        </>
+                    )}
 
                     {product.descricao && (
                         <div className="mt-10">
@@ -204,8 +213,7 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                 </div>
             </div>
 
-            {/* Modal de parcelamento */}
-            {showModal && (
+            {showModal && product.disponivel && (
                 <div
                     ref={modalRef}
                     onClick={fecharModalExterno}

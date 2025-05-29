@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import { loja } from '@/app/config/lojaConfig';
+import { fetchEstoqueTiny } from './fetchEstoqueTiny';
 
 export interface Product {
     titulo: string;
@@ -22,6 +23,9 @@ export interface Product {
     slug: string;
     tem5g?: boolean;
     temNFC?: boolean;
+    idTiny?: string;
+    estoqueSaldo?: number;
+    disponivel?: boolean;
 }
 
 interface RawProduct {
@@ -42,10 +46,8 @@ interface RawProduct {
     ram?: string;
     armazenamento?: string;
     NFC?: string;
+    idTiny?: string;
 }
-
-
-
 
 function slugify(text: string): string {
     return text
@@ -60,9 +62,9 @@ function parseValor(raw: string | undefined): number | undefined {
     if (!raw) return undefined;
 
     const cleaned = raw
-        .replace(/[^\d.,]/g, '') // remove tudo exceto números, ponto e vírgula
-        .replace(/\.(?=\d{3})/g, '') // remove pontos de milhar (ex: 1.299,99 → 1299,99)
-        .replace(',', '.'); // converte decimal final
+        .replace(/[^\d.,]/g, '')
+        .replace(/\.(?=\d{3})/g, '')
+        .replace(',', '.');
 
     const parsed = parseFloat(cleaned);
     return isNaN(parsed) ? undefined : parsed;
@@ -76,53 +78,77 @@ export async function fetchProducts(): Promise<Product[]> {
         Papa.parse(csvText, {
             header: true,
             skipEmptyLines: true,
-            complete: (results) => {
+            complete: async (results) => {
                 const data = results.data as RawProduct[];
 
-                const validProducts: Product[] = data
-                    .filter(
-                        (p) =>
-                            p.titulo &&
-                            p.valor &&
-                            p.categoria &&
-                            String(p.inativo).toLowerCase() !== 'true'
-                    )
-                    .map((p) => {
-                        const promocaoNum = parseValor(p.promocao);
-                        const valorNum = parseValor(p.valor) ?? 0;
+                const validProducts: Product[] = await Promise.all(
+                    data
+                        .filter(
+                            (p) =>
+                                p.titulo &&
+                                p.valor &&
+                                p.categoria
+                        )
+                        .map(async (p) => {
+                            const promocaoNum = parseValor(p.promocao);
+                            const valorNum = parseValor(p.valor) ?? 0;
 
-                        // Detectar 5G com base no título
-                        const tem5g = p.titulo.includes(' 5G ');
+                            const tem5g = p.titulo.includes(' 5G ');
+                            const nfcBruto = (p.NFC || '').trim().toLowerCase();
+                            const temNFC = ['sim', 'nfc', 'true'].includes(nfcBruto);
 
-                        // Interpretar campo NFC
-                        const nfcBruto = (p.NFC || '').trim().toLowerCase();
-                        const temNFC = ['sim', 'nfc', 'true'].includes(nfcBruto) || false;
+                            let estoqueSaldo: number | undefined = undefined;
+                            const idTiny = p.idTiny?.trim().toLowerCase();
 
-                        return {
-                            ...p,
-                            titulo: p.titulo.trim(),
-                            valor: valorNum,
-                            promocao: promocaoNum,
-                            emPromocao: !!promocaoNum,
-                            destaque: String(p.destaque || '').toLowerCase() === 'true',
-                            cor: p.cor?.trim() || undefined,
-                            marca: p.marca?.trim() || undefined,
-                            categoria: p.categoria.trim(),
-                            subcategoria: p.subcategoria?.trim() || undefined,
-                            imagemPrincipal: p.imagemPrincipal?.trim(),
-                            imagem2: p.imagem2?.trim(),
-                            imagem3: p.imagem3?.trim(),
-                            imagem4: p.imagem4?.trim(),
-                            descricao: p.descricao?.trim(),
-                            ram: p.ram?.trim(),
-                            armazenamento: p.armazenamento?.trim(),
-                            slug: slugify(p.titulo),
-                            tem5g,
-                            temNFC,
-                        };
-                    });
+                            if (idTiny === 'infinito') {
+                                estoqueSaldo = 1;
+                            } else if (idTiny) {
+                                try {
+                                    const estoqueData = await fetchEstoqueTiny(idTiny);
+                                    estoqueSaldo = estoqueData.saldo;
+                                    console.log(`Estoque do produto ${p.titulo}:`, estoqueSaldo);
+                                } catch (err) {
+                                    console.warn(`Erro ao buscar estoque do produto ${p.titulo}:`, err);
+                                }
+                            }
 
-                resolve(validProducts);
+                            const inativoPorEstoque = idTiny && idTiny !== 'infinito' && (estoqueSaldo ?? 0) <= 0;
+                            const disponivel = !inativoPorEstoque;
+
+                            return {
+                                ...p,
+                                titulo: p.titulo.trim(),
+                                valor: valorNum,
+                                promocao: promocaoNum,
+                                emPromocao: !!promocaoNum,
+                                destaque: String(p.destaque || '').toLowerCase() === 'true',
+                                cor: p.cor?.trim() || undefined,
+                                marca: p.marca?.trim() || undefined,
+                                categoria: p.categoria.trim(),
+                                subcategoria: p.subcategoria?.trim() || undefined,
+                                imagemPrincipal: p.imagemPrincipal?.trim(),
+                                imagem2: p.imagem2?.trim(),
+                                imagem3: p.imagem3?.trim(),
+                                imagem4: p.imagem4?.trim(),
+                                descricao: p.descricao?.trim(),
+                                ram: p.ram?.trim(),
+                                armazenamento: p.armazenamento?.trim(),
+                                slug: slugify(p.titulo),
+                                tem5g,
+                                temNFC,
+                                idTiny,
+                                estoqueSaldo,
+                                disponivel,
+                                inativo: inativoPorEstoque ? 'true' : p.inativo?.toLowerCase(),
+                            };
+                        })
+                );
+
+                const ativos = validProducts.filter(
+                    (p) => String(p.inativo).toLowerCase() !== 'true'
+                );
+
+                resolve(ativos);
             },
             error: (error: unknown) => reject(error),
         });
