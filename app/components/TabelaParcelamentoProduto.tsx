@@ -31,7 +31,7 @@ export default function TabelaParcelamentoProduto({
 }: Props) {
     const ref = useRef<HTMLDivElement>(null);
     const { todasTaxas } = useCatalogo();
-    const [copiado, setCopiado] = useState(false);
+    const [copiado, setCopiado] = useState<null | 'texto' | 'imagem'>(null);
 
     const isMobile =
         typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -61,8 +61,8 @@ export default function TabelaParcelamentoProduto({
                 await navigator.clipboard.write([
                     new ClipboardItem({ 'image/png': blob }),
                 ]);
-                setCopiado(true);
-                setTimeout(() => setCopiado(false), 2000);
+                setCopiado('imagem');
+                setTimeout(() => setCopiado(null), 2000);
             }
         } catch (err) {
             console.error('Erro ao gerar imagem:', err);
@@ -70,18 +70,35 @@ export default function TabelaParcelamentoProduto({
         }
     };
 
+    const copiarTexto = async (texto: string) => {
+        try {
+            if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(texto);
+                setCopiado('texto');
+                setTimeout(() => setCopiado(null), 2000);
+            } else {
+                console.warn('Clipboard API não disponível');
+            }
+        } catch (err) {
+            console.error('Erro ao copiar texto:', err);
+        }
+    };
+
     const corSlug = product.cor?.toLowerCase().replace(/[^a-z0-9]/g, '') ?? '';
     const corClasse = aliasesCores[corSlug as keyof typeof aliasesCores] || 'bg-gray-400';
-    const imagem = product.imagemPrincipal || '/fallback.png';
+    const imagem = product.imagemPrincipal;
 
     return (
-        <div>
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
             <div ref={ref} className="bg-white p-4 rounded-xl shadow-md border text-center">
                 {/* CABEÇALHO COM PRODUTO */}
                 <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 text-sm text-[#2e1065]">
-                    <div className="relative w-20 h-20 flex-shrink-0 mx-auto">
-                        <Image src={imagem} alt={product.titulo} fill className="object-contain rounded" />
-                    </div>
+                    {imagem && (
+                        <div className="relative w-20 h-20 flex-shrink-0 mx-auto">
+                            <Image src={imagem} alt={product.titulo} fill className="object-contain rounded" />
+                        </div>
+                    )}
+
                     <div className="flex flex-col items-center justify-center gap-2">
                         <h2 className="text-lg font-bold">{product.titulo}</h2>
                         <div className="flex flex-wrap justify-center items-center gap-2">
@@ -108,19 +125,15 @@ export default function TabelaParcelamentoProduto({
                 </div>
 
                 {/* TABELA DE PARCELAMENTO */}
-                <TabelaParcelamento
-                    preco={preco}
-                    taxas={taxasVisiveis}
-                    mostrarTaxa={mostrarTaxa}
-                    textoTotal="Total no Cartão"
-                    onCopiarTexto={(texto) => {
-                        navigator.clipboard.writeText(texto);
-                        setCopiado(true);
-                        setTimeout(() => setCopiado(false), 2000);
-                    }}
-                />
-
-
+                <div className="overflow-x-auto -mx-2 sm:mx-0">
+                    <TabelaParcelamento
+                        preco={preco}
+                        taxas={taxasVisiveis}
+                        mostrarTaxa={mostrarTaxa}
+                        textoTotal="Total no Cartão"
+                        onCopiarTexto={copiarTexto}
+                    />
+                </div>
 
                 <div className="py-4 flex justify-center border-t mt-4">
                     <img src="/logo.png" alt="Logo" className="h-8" />
@@ -153,7 +166,7 @@ export default function TabelaParcelamentoProduto({
                         exit={{ opacity: 0, y: -10 }}
                         className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-md z-50"
                     >
-                        Imagem copiada!
+                        {copiado === 'imagem' ? 'Imagem copiada!' : 'Texto copiado!'}
                     </motion.div>
                 )}
             </AnimatePresence>

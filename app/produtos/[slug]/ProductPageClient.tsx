@@ -10,6 +10,7 @@ import { MdOutlineImageNotSupported } from 'react-icons/md';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 import TabelaParcelamentoProduto from '@/app/components/TabelaParcelamentoProduto';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface Props {
     product: Product;
@@ -27,19 +28,36 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
     const { todasTaxas } = useCatalogo();
 
     useEffect(() => {
-        document.body.style.overflow = showModal ? 'hidden' : '';
+        if (showModal) {
+            document.body.style.overflow = 'hidden';
+            // Adiciona um estado ao histórico para interceptar o botão voltar
+            window.history.pushState({ modal: true }, '');
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        const onPopState = (e: PopStateEvent) => {
+            if (showModal) {
+                setShowModal(false); // Fecha o modal
+                // Adiciona novamente o estado ao histórico, impedindo voltar de verdade
+                window.history.pushState(null, '');
+            }
+        };
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setShowModal(false);
+        };
+
+        window.addEventListener('popstate', onPopState);
+        window.addEventListener('keydown', onKeyDown);
+
         return () => {
+            window.removeEventListener('popstate', onPopState);
+            window.removeEventListener('keydown', onKeyDown);
             document.body.style.overflow = '';
         };
     }, [showModal]);
 
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setShowModal(false);
-        };
-        document.addEventListener('keydown', handler);
-        return () => document.removeEventListener('keydown', handler);
-    }, []);
 
     const preco = product.promocao ?? product.valor ?? 0;
     const taxa12x = todasTaxas.find((t) => t.parcelas.replace('x', '') === '12')?.taxa || 0;
@@ -204,34 +222,49 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                     )}
                 </div>
             </div>
-
-            {showModal && product.disponivel && (
-                <div
-                    ref={modalRef}
-                    onClick={fecharModalExterno}
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-                >
-                    <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative shadow-lg">
-                        <button
-                            onClick={() => setShowModal(false)}
-                            className="absolute top-2 right-2 text-gray-600 hover:text-black text-xl"
-                            aria-label="Fechar"
+            <AnimatePresence>
+                {showModal && product.disponivel && (
+                    <motion.div
+                        ref={modalRef}
+                        onClick={fecharModalExterno}
+                        className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="relative bg-white w-full max-w-3xl mx-2 sm:mx-auto sm:rounded-xl shadow-lg overflow-y-auto max-h-[90vh]"
                         >
-                            ✕
-                        </button>
-                        <h2 className="text-2xl font-bold mb-4">Parcelamento</h2>
+                            <div className="relative p-4 sm:p-6">
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    className="absolute top-3 right-3 text-gray-600 hover:text-black text-xl z-10"
+                                    aria-label="Fechar"
+                                >
+                                    ✕
+                                </button>
 
-                        <TabelaParcelamentoProduto
-                            product={product}
-                            preco={preco}
-                            mostrarTaxa={mostrarTaxa}
-                            verMais={verMais}
-                            onToggleVerMais={() => setVerMais(!verMais)}
-                            onToggleMostrarTaxa={() => setMostrarTaxa(!mostrarTaxa)}
-                        />
-                    </div>
-                </div>
-            )}
+                                <h2 className="text-2xl font-bold mb-4 pt-4 pr-10">Parcelamento</h2>
+
+                                <TabelaParcelamentoProduto
+                                    product={product}
+                                    preco={preco}
+                                    mostrarTaxa={mostrarTaxa}
+                                    verMais={verMais}
+                                    onToggleVerMais={() => setVerMais(!verMais)}
+                                    onToggleMostrarTaxa={() => setMostrarTaxa(!mostrarTaxa)}
+                                />
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+
 
             <ProdutosRelacionados
                 produtoAtual={product}

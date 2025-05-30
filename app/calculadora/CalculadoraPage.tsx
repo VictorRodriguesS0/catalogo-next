@@ -73,6 +73,7 @@ export default function CalculadoraPage() {
 
             if (!blob) {
                 alert('Erro ao gerar imagem');
+                console.error('Erro ao gerar blob da imagem');
                 return;
             }
 
@@ -90,7 +91,6 @@ export default function CalculadoraPage() {
                 setTimeout(() => setCopiado(false), 2000);
             }
         } catch (err) {
-            alert('Erro ao gerar imagem');
             console.error('Erro ao gerar print:', err);
         } finally {
             node.style.overflow = originalStyle.overflow;
@@ -103,8 +103,8 @@ export default function CalculadoraPage() {
             await navigator.clipboard.writeText(texto);
             setCopiado(true);
             setTimeout(() => setCopiado(false), 2000);
-        } catch {
-            alert('Erro ao copiar');
+        } catch (err) {
+            console.error('Erro ao copiar texto:', err);
         }
     };
 
