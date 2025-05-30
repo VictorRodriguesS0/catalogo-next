@@ -21,24 +21,31 @@ export async function generateMetadata({
     const preco = produto.promocao || produto.valor;
     const precoNumerico = formatPrecoToNumber(preco);
 
+    function stripHTML(html: string) {
+        return html.replace(/<[^>]*>?/gm, '').trim();
+    }
+
+    const tituloLimpo = stripHTML(produto.titulo);
+    const descricaoLimpa = stripHTML(produto.descricao || '');
+
+
     return {
-        metadataBase: new URL('https://catalogo-next.netlify.app'),
-        title: `${produto.titulo} | Lojinha Eletrônicos`,
+        metadataBase: new URL('https://lojinhaeletronicos.com'),
+        title: `${tituloLimpo} | Lojinha Eletrônicos`,
         description:
-            produto.descricao ||
-            'Confira este produto incrível com envio para o DF, nota fiscal e garantia.',
+            descricaoLimpa || 'Confira este produto incrível com envio para o DF.',
         openGraph: {
-            title: produto.titulo,
-            description: produto.descricao || '',
+            title: tituloLimpo,
+            description: descricaoLimpa,
             images: [
                 {
                     url: produto.imagemPrincipal || '/fallback.png',
                     width: 800,
                     height: 600,
-                    alt: produto.titulo,
+                    alt: tituloLimpo,
                 },
             ],
-            url: `https://catalogo-next.netlify.app/produtos/${produto.slug}`,
+            url: `https://lojinhaeletronicos.com/produtos/${produto.slug}`,
             type: 'website',
         },
         other: {
@@ -47,6 +54,7 @@ export async function generateMetadata({
             'product:price:currency': 'BRL',
         },
     };
+
 }
 
 export default async function ProductPage({

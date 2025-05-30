@@ -10,6 +10,7 @@ import { RiSdCardMiniLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import aliasesCores from '@/lib/aliasesCores';
 import Image from 'next/image';
+import TabelaParcelamento from './TabelaParcelamento';
 
 interface Props {
     product: Product;
@@ -34,16 +35,12 @@ export default function TabelaParcelamentoProduto({
 
     const isMobile =
         typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    const suportaClipboard = typeof navigator !== 'undefined' && !!navigator.clipboard && !!window.ClipboardItem;
-
+    const suportaClipboard =
+        typeof navigator !== 'undefined' && !!navigator.clipboard && !!window.ClipboardItem;
     const taxasVisiveis = verMais ? todasTaxas : todasTaxas.slice(0, 12);
 
     const formatarMoeda = (valor: number): string =>
-        new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-        }).format(valor);
+        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
 
     const calcularJurosAoMes = (taxaTotal: number, parcelas: number): string => {
         const txDecimal = taxaTotal / 100;
@@ -53,24 +50,17 @@ export default function TabelaParcelamentoProduto({
 
     const gerarImagem = async () => {
         if (!ref.current) return;
-
-        const node = ref.current;
-        const { width, height } = node.getBoundingClientRect();
-
         try {
-            const blob = await htmlToImage.toBlob(node, {
+            const { width, height } = ref.current.getBoundingClientRect();
+            const blob = await htmlToImage.toBlob(ref.current, {
                 backgroundColor: '#ffffff',
-                pixelRatio: 1.5,
+                pixelRatio: window.devicePixelRatio || 2,
                 width,
                 height,
             });
+            if (!blob) return alert('Erro ao gerar imagem');
 
-            if (!blob) {
-                alert('Erro ao gerar imagem');
-                return;
-            }
-
-            if (!suportaClipboard) {
+            if (!suportaClipboard || isMobile) {
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
@@ -78,14 +68,14 @@ export default function TabelaParcelamentoProduto({
                 link.click();
             } else {
                 await navigator.clipboard.write([
-                    new ClipboardItem({ 'image/png': blob })
+                    new ClipboardItem({ 'image/png': blob }),
                 ]);
                 setCopiado(true);
                 setTimeout(() => setCopiado(false), 2000);
             }
         } catch (err) {
-            alert('Erro ao gerar imagem');
-            console.error('Erro ao gerar print:', err);
+            console.error('Erro ao gerar imagem:', err);
+            alert('Erro ao gerar o print da tabela. Tente novamente.');
         }
     };
 
@@ -96,17 +86,13 @@ export default function TabelaParcelamentoProduto({
     return (
         <div>
             <div ref={ref} className="bg-white p-4 rounded-xl shadow-md border text-center">
-                <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 text-sm text-gray-700 text-center">
+                {/* CABEÇALHO COM PRODUTO */}
+                <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 text-sm text-[#2e1065]">
                     <div className="relative w-20 h-20 flex-shrink-0 mx-auto">
-                        <Image
-                            src={imagem}
-                            alt={product.titulo}
-                            fill
-                            className="object-contain rounded"
-                        />
+                        <Image src={imagem} alt={product.titulo} fill className="object-contain rounded" />
                     </div>
                     <div className="flex flex-col items-center justify-center gap-2">
-                        <h2 className="text-lg font-bold text-gray-900 text-center">{product.titulo}</h2>
+                        <h2 className="text-lg font-bold">{product.titulo}</h2>
                         <div className="flex flex-wrap justify-center items-center gap-2">
                             {product.armazenamento && (
                                 <span className="bg-gray-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
@@ -120,7 +106,7 @@ export default function TabelaParcelamentoProduto({
                             )}
                             {product.cor && (
                                 <span className="bg-gray-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
-                                    <span className={`w-3 h-3 rounded-full border border-gray-300 ${corClasse}`}></span>
+                                    <span className={`w-3 h-3 rounded-full border border-gray-300 ${corClasse}`} />
                                     {product.cor}
                                 </span>
                             )}
@@ -130,60 +116,39 @@ export default function TabelaParcelamentoProduto({
                     </div>
                 </div>
 
-                <table className="min-w-full border border-gray-200 text-sm rounded-lg overflow-hidden text-center">
-                    <thead className="bg-blue-100 text-gray-800">
-                        <tr>
-                            <th className="border px-4 py-2 text-center">Parcelas</th>
-                            {mostrarTaxa && (
-                                <th className="border px-4 py-2 text-center">Juros compostos</th>
-                            )}
-                            <th className="border px-4 py-2 text-center">Valor da Parcela</th>
-                            <th className="border px-4 py-2 text-center">Total no Cartão</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white">
-                        {taxasVisiveis.map(({ parcelas, taxa }) => {
-                            const taxaDecimal = taxa / 100;
-                            const totalComTaxa = preco * (1 + taxaDecimal);
-                            const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
-                            const valorParcela = totalComTaxa / qtdParcelas;
-                            const jurosMes = calcularJurosAoMes(taxa, qtdParcelas);
+                {/* TABELA DE PARCELAMENTO */}
+                <TabelaParcelamento
+                    preco={preco}
+                    taxas={taxasVisiveis}
+                    mostrarTaxa={mostrarTaxa}
+                    textoTotal="Total no Cartão"
+                    onCopiarTexto={(texto) => {
+                        navigator.clipboard.writeText(texto);
+                        setCopiado(true);
+                        setTimeout(() => setCopiado(false), 2000);
+                    }}
+                />
 
-                            return (
-                                <tr key={parcelas}>
-                                    <td className="border px-4 py-2">{parcelas}</td>
-                                    {mostrarTaxa && <td className="border px-4 py-2">{jurosMes}</td>}
-                                    <td className="border px-4 py-2">{formatarMoeda(valorParcela)}</td>
-                                    <td className="border px-4 py-2 font-semibold">{formatarMoeda(totalComTaxa)}</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+
 
                 <div className="py-4 flex justify-center border-t mt-4">
                     <img src="/logo.png" alt="Logo" className="h-8" />
                 </div>
             </div>
 
-            <div className="mt-4 text-center flex flex-wrap justify-center gap-4 items-center">
-                <button
-                    onClick={onToggleVerMais}
-                    className="text-xs text-blue-600 underline hover:text-blue-800"
-                >
+            {/* AÇÕES */}
+            <div className="mt-4 text-center flex flex-wrap justify-center gap-4 items-center text-[#2e1065]">
+                <button onClick={onToggleVerMais} className="text-xs underline hover:text-blue-800">
                     {verMais ? 'Mostrar menos parcelas' : 'Ver mais parcelas'}
                 </button>
                 {verMais && (
-                    <button
-                        onClick={onToggleMostrarTaxa}
-                        className="text-xs text-gray-500 underline hover:text-gray-800"
-                    >
+                    <button onClick={onToggleMostrarTaxa} className="text-xs underline hover:text-gray-800">
                         {mostrarTaxa ? 'Ocultar taxas' : 'Mostrar taxas'}
                     </button>
                 )}
                 <button
                     onClick={gerarImagem}
-                    className="text-[10px] text-gray-400 underline hover:text-black flex items-center gap-1"
+                    className="text-[10px] underline hover:text-black flex items-center gap-1"
                 >
                     <Camera size={12} /> {isMobile ? 'Baixar imagem' : 'Copiar print'}
                 </button>

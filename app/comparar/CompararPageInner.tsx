@@ -1,17 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { fetchProducts, Product } from '@/lib/fetchProducts';
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatPreco } from '@/lib/formatPrice';
 import { useComparar } from '@/app/context/CompararContext';
+import { useCatalogo } from '@/app/context/CatalogoContext';
 import { useSearchParams, usePathname } from 'next/navigation';
 
 export default function CompararPageInner() {
     const { comparar, adicionar, remover, limpar } = useComparar();
+    const { produtos: todosProdutos } = useCatalogo();
     const pathname = usePathname();
-    const [todosProdutos, setTodosProdutos] = useState<Product[]>([]);
     const [buscas, setBuscas] = useState<string[]>(['', '', '']);
     const [visivel, setVisivel] = useState<number | null>(null);
 
@@ -23,43 +23,39 @@ export default function CompararPageInner() {
 
     const searchParams = useSearchParams();
 
-    const substituirProduto = (index: number, produto: Product) => {
+    const substituirProduto = (index: number, produto: any) => {
         const atual = [...comparar];
         const existente = atual.find((p) => p.slug === produto.slug);
         if (existente) return;
 
-        atual[index] = produto;
         limpar();
-        atual.forEach((p) => p && adicionar(p));
+        const atualizados = [...atual];
+        atualizados[index] = produto;
+        atualizados.forEach((p) => p && adicionar(p));
+
         const novasBuscas = [...buscas];
         novasBuscas[index] = produto.titulo;
         setBuscas(novasBuscas);
     };
 
     useEffect(() => {
-        fetchProducts().then(setTodosProdutos);
-    }, []);
-
-    useEffect(() => {
         const slugs = searchParams.get('produtos')?.split(',') || [];
-        if (slugs.length > 0 && comparar.length === 0) {
-            fetchProducts().then((todos) => {
-                const buscasTemp = ['', '', ''];
-                slugs.slice(0, 3).forEach((slug, i) => {
-                    const p = todos.find((prod) => prod.slug === slug);
-                    if (p) {
-                        adicionar(p);
-                        buscasTemp[i] = p.titulo;
-                    }
-                });
-                setBuscas(buscasTemp);
+        if (slugs.length > 0 && comparar.length === 0 && todosProdutos.length > 0) {
+            const buscasTemp = ['', '', ''];
+            slugs.slice(0, 3).forEach((slug, i) => {
+                const p = todosProdutos.find((prod) => prod.slug === slug);
+                if (p) {
+                    adicionar(p);
+                    buscasTemp[i] = p.titulo;
+                }
             });
+            setBuscas(buscasTemp);
         }
-    }, []);
+    }, [searchParams, todosProdutos]);
 
     useEffect(() => {
         const fecharSugestoes = (e: MouseEvent) => {
-            if (!wrapperRefs.some((ref) => ref.current && ref.current.contains(e.target as Node))) {
+            if (!wrapperRefs.some((ref) => ref.current?.contains(e.target as Node))) {
                 setVisivel(null);
             }
         };
@@ -72,9 +68,7 @@ export default function CompararPageInner() {
     }, [comparar]);
 
     const atualizarURL = () => {
-        const slugs = comparar
-            .map((p) => p?.slug)
-            .filter((slug, i, arr) => slug && arr.indexOf(slug) === i);
+        const slugs = comparar.map((p) => p?.slug).filter((slug, i, arr) => slug && arr.indexOf(slug) === i);
         const newUrl = slugs.length > 0 ? `${pathname}?produtos=${slugs.join(',')}` : pathname;
         window.history.replaceState({}, '', newUrl);
     };
@@ -169,15 +163,11 @@ export default function CompararPageInner() {
                 ))}
             </div>
 
-            {/* VISUALIZAÇÃO DOS PRODUTOS COMPARADOS */}
             <div className="flex gap-4 pt-6 overflow-x-auto">
                 {[0, 1, 2].map((i) => {
                     const produto = comparar[i];
                     return (
-                        <div
-                            key={produto?.slug || `vazio-${i}`}
-                            className="w-[320px] snap-start shrink-0"
-                        >
+                        <div key={produto?.slug || `vazio-${i}`} className="w-[320px] snap-start shrink-0">
                             {produto ? (
                                 <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex flex-col h-full">
                                     <div className="relative w-full h-40 mb-4 bg-gray-50">
@@ -224,7 +214,6 @@ export default function CompararPageInner() {
                 })}
             </div>
 
-            {/* BOTÕES */}
             {comparar.length > 0 && (
                 <div className="text-center mt-6 flex flex-col items-center space-y-4">
                     <button

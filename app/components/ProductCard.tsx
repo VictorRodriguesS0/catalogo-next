@@ -11,6 +11,7 @@ import { loja } from '../config/lojaConfig';
 import aliasesCores from '@/lib/aliasesCores';
 import { RiSdCardMiniLine } from 'react-icons/ri';
 import { MdMemory } from 'react-icons/md';
+import { useMemo } from 'react';
 
 interface ProductCardProps {
     product: Product;
@@ -22,7 +23,11 @@ export default function ProductCard({ product, visualizacao = 'grade' }: Product
     const precoNum = product.promocao ?? product.valor ?? 0;
     const { taxa12x } = useCatalogo();
     const { comparar, adicionar, remover, modoComparar } = useComparar();
-    const jaComparado = comparar.some((p) => p.slug === product.slug);
+    const jaComparado = useMemo(
+        () => comparar.some((p) => p.slug === product.slug),
+        [comparar, product.slug]
+    );
+
 
     const mostrarParcelamento = precoNum > 50 && taxa12x !== null;
     const totalComJuros = precoNum * (1 + (taxa12x || 0) / 100);

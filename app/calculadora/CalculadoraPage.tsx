@@ -6,6 +6,7 @@ import { useCatalogo } from '@/app/context/CatalogoContext';
 import * as htmlToImage from 'html-to-image';
 import { Camera, Link2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import TabelaParcelamento from '../components/TabelaParcelamento';
 
 export default function CalculadoraPage() {
     const searchParams = useSearchParams();
@@ -23,11 +24,7 @@ export default function CalculadoraPage() {
         const valorParam = searchParams.get('valor');
         const entradaParam = searchParams.get('entrada');
 
-        if (valorParam) {
-            const valor = parseFloat(valorParam);
-            setValorNumerico(valor);
-        }
-
+        if (valorParam) setValorNumerico(parseFloat(valorParam));
         if (entradaParam) {
             const entrada = parseFloat(entradaParam);
             setEntradaNumerica(entrada);
@@ -38,6 +35,11 @@ export default function CalculadoraPage() {
     const isMobile = () =>
         typeof navigator !== 'undefined' &&
         /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    const suportaClipboard =
+        typeof navigator !== 'undefined' &&
+        !!navigator.clipboard &&
+        !!window.ClipboardItem;
 
     const taxasVisiveis = verMais ? todasTaxas : todasTaxas.slice(0, 12);
     const restante = Math.max(0, valorNumerico - entradaNumerica);
@@ -57,19 +59,22 @@ export default function CalculadoraPage() {
 
     const gerarImagem = async () => {
         if (!printRef.current) return;
-
+        const node = printRef.current;
+        const { width, height } = node.getBoundingClientRect();
         const originalStyle = {
-            overflow: printRef.current.style.overflow,
-            height: printRef.current.style.height,
+            overflow: node.style.overflow,
+            height: node.style.height,
         };
 
         try {
-            printRef.current.style.overflow = 'visible';
-            printRef.current.style.height = 'auto';
+            node.style.overflow = 'visible';
+            node.style.height = 'auto';
 
-            const blob = await htmlToImage.toBlob(printRef.current, {
+            const blob = await htmlToImage.toBlob(node, {
                 backgroundColor: '#ffffff',
                 pixelRatio: 2,
+                width,
+                height,
             });
 
             if (!blob) {
@@ -77,7 +82,7 @@ export default function CalculadoraPage() {
                 return;
             }
 
-            if (isMobile()) {
+            if (!suportaClipboard || isMobile()) {
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
@@ -85,7 +90,7 @@ export default function CalculadoraPage() {
                 link.click();
             } else {
                 await navigator.clipboard.write([
-                    new ClipboardItem({ 'image/png': blob })
+                    new ClipboardItem({ 'image/png': blob }),
                 ]);
                 setCopiado(true);
                 setTimeout(() => setCopiado(false), 2000);
@@ -94,8 +99,8 @@ export default function CalculadoraPage() {
             alert('Erro ao gerar imagem');
             console.error('Erro ao gerar print:', err);
         } finally {
-            printRef.current.style.overflow = originalStyle.overflow;
-            printRef.current.style.height = originalStyle.height;
+            node.style.overflow = originalStyle.overflow;
+            node.style.height = originalStyle.height;
         }
     };
 
@@ -110,10 +115,8 @@ export default function CalculadoraPage() {
     };
 
     const handleInput = (e: React.ChangeEvent<HTMLInputElement>, tipo: 'valor' | 'entrada') => {
-        const input = e.target.value;
-        const apenasNumeros = input.replace(/\D/g, '');
+        const apenasNumeros = e.target.value.replace(/\D/g, '');
         const valor = parseFloat((parseInt(apenasNumeros || '0') / 100).toFixed(2));
-
         if (tipo === 'valor') {
             setValorNumerico(valor);
         } else {
@@ -166,40 +169,13 @@ export default function CalculadoraPage() {
                 {valorNumerico > 0 && restante > 0 && (
                     <>
                         <div className="overflow-x-auto">
-                            <table className="min-w-full border border-gray-200 text-sm rounded-lg overflow-hidden text-center">
-                                <thead className="bg-blue-100 text-gray-800 sticky top-0 z-10">
-                                    <tr>
-                                        <th className="border px-4 py-2">Parcelas</th>
-                                        {mostrarTaxa && <th className="border px-4 py-2">Taxa de Juros</th>}
-                                        <th className="border px-4 py-2">Valor da Parcela</th>
-                                        <th className="border px-4 py-2 font-semibold">{temEntrada ? 'Total no cartão' : 'Total'}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white">
-                                    {taxasVisiveis.map(({ parcelas, taxa }) => {
-                                        const taxaDecimal = taxa / 100;
-                                        const totalComTaxa = restante * (1 + taxaDecimal);
-                                        const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
-                                        const valorParcela = totalComTaxa / qtdParcelas;
-                                        const jurosMes = calcularJurosAoMes(taxa, qtdParcelas);
-                                        const texto = `${parcelas} de ${formatarMoeda(valorParcela)} - Total: ${formatarMoeda(totalComTaxa)}`;
-
-                                        return (
-                                            <motion.tr
-                                                key={parcelas}
-                                                onClick={() => copiarTexto(texto)}
-                                                className="hover:bg-blue-50 transition-colors cursor-pointer even:bg-gray-50"
-                                                whileTap={{ scale: 0.98 }}
-                                            >
-                                                <td className="border px-4 py-2">{parcelas}</td>
-                                                {mostrarTaxa && <td className="border px-4 py-2">{jurosMes}</td>}
-                                                <td className="border px-4 py-2">{formatarMoeda(valorParcela)}</td>
-                                                <td className="border px-4 py-2 font-semibold">{formatarMoeda(totalComTaxa)}</td>
-                                            </motion.tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                            <TabelaParcelamento
+                                preco={restante}
+                                taxas={taxasVisiveis}
+                                mostrarTaxa={mostrarTaxa}
+                                textoTotal={temEntrada ? 'Total no Cartão' : 'Total'}
+                                onCopiarTexto={copiarTexto}
+                            />
                         </div>
 
                         <div className="py-4 flex justify-center border-t">

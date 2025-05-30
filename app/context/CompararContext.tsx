@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { Product } from '@/lib/fetchProducts';
+import { useCatalogo } from './CatalogoContext';
 
 interface CompararContextType {
     comparar: Product[];
@@ -15,15 +16,19 @@ interface CompararContextType {
 const CompararContext = createContext<CompararContextType | undefined>(undefined);
 
 export const CompararProvider = ({ children }: { children: React.ReactNode }) => {
-    const [comparar, setComparar] = useState<Product[]>([]);
+    const { produtos } = useCatalogo();
+    const [slugsComparar, setSlugsComparar] = useState<string[]>([]);
     const [modoComparar, setModoComparar] = useState(false);
+
+    // Reconstrói a lista de produtos a partir dos slugs + contexto
+    const comparar = produtos.filter((p) => slugsComparar.includes(p.slug));
 
     useEffect(() => {
         const local = localStorage.getItem('comparar');
         if (local) {
             try {
-                const parsed: Product[] = JSON.parse(local);
-                setComparar(parsed);
+                const parsed: string[] = JSON.parse(local);
+                setSlugsComparar(parsed);
             } catch (e) {
                 console.error('Erro ao carregar comparação do localStorage:', e);
             }
@@ -31,22 +36,22 @@ export const CompararProvider = ({ children }: { children: React.ReactNode }) =>
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('comparar', JSON.stringify(comparar));
-    }, [comparar]);
+        localStorage.setItem('comparar', JSON.stringify(slugsComparar));
+    }, [slugsComparar]);
 
     const adicionar = (produto: Product) => {
-        setComparar((prev) => {
-            if (prev.find((p) => p.slug === produto.slug)) return prev;
+        setSlugsComparar((prev) => {
+            if (prev.includes(produto.slug)) return prev;
             if (prev.length >= 3) return prev;
-            return [...prev, produto];
+            return [...prev, produto.slug];
         });
     };
 
     const remover = (slug: string) => {
-        setComparar((prev) => prev.filter((p) => p.slug !== slug));
+        setSlugsComparar((prev) => prev.filter((s) => s !== slug));
     };
 
-    const limpar = () => setComparar([]);
+    const limpar = () => setSlugsComparar([]);
 
     return (
         <CompararContext.Provider

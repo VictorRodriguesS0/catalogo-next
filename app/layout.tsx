@@ -9,6 +9,7 @@ import Breadcrumbs from "@/app/components/Breadcrumbs";
 import { Suspense } from "react";
 import BotaoCompararFlutuante from "./components/BotaoCompararFlutuante";
 import PageTransition from "./components/PageTransition";
+import { getCatalogoData } from "@/lib/getCatalogoData"; // ✅ novo
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,32 +21,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Lojinha Eletrônicos",
-  description:
-    "Todos os produtos possuem nota fiscal e garantia. Pagamento à vista ou em até 12x com juros.",
+  description: "A melhor loja de eletrônicos de Brasília: Xiaomi, Realme, JBL, iPhones e muito mais.",
+  openGraph: {
+    title: "Lojinha Eletrônicos",
+    description: "A melhor loja de eletrônicos de Brasília: Xiaomi, Realme, JBL, iPhones e muito mais.",
+    url: "https://lojinhaeletronicos.com", // substitua pelo domínio real
+    siteName: "Lojinha Eletrônicos",
+    images: [
+      {
+        url: "https://lojinhaeletronicos.com/logo.png", // certifique-se de que a logo está hospedada aqui
+        width: 800,
+        height: 600,
+        alt: "Lojinha Eletrônicos - Logo",
+      },
+    ],
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
-export default function RootLayout({
+
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialData = await getCatalogoData(); // ✅ pré-carregamento server-side
+
   return (
     <html lang="pt-BR">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900`}
       >
-        <CatalogoProvider>
+        <CatalogoProvider initialData={initialData}> {/* ✅ dados passados prontos */}
           <CompararProvider>
             <Header />
             <main className="max-w-6xl mx-auto p-4">
               <Suspense fallback={null}>
                 <Breadcrumbs />
               </Suspense>
-              <PageTransition>
-                {children}
-              </PageTransition>
+              <PageTransition>{children}</PageTransition>
             </main>
 
             <BotaoCompararFlutuante />
