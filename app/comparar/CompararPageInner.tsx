@@ -7,6 +7,7 @@ import { formatPreco } from '@/lib/formatPrice';
 import { useComparar } from '@/app/context/CompararContext';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { useSearchParams, usePathname } from 'next/navigation';
+import { Product } from '@/lib/fetchProducts';
 
 export default function CompararPageInner() {
     const { comparar, adicionar, remover, limpar } = useComparar();
@@ -23,7 +24,7 @@ export default function CompararPageInner() {
 
     const searchParams = useSearchParams();
 
-    const substituirProduto = (index: number, produto: any) => {
+    const substituirProduto = (index: number, produto: Product) => {
         const atual = [...comparar];
         const existente = atual.find((p) => p.slug === produto.slug);
         if (existente) return;

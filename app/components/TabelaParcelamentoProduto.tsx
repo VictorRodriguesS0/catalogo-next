@@ -39,15 +39,6 @@ export default function TabelaParcelamentoProduto({
         typeof navigator !== 'undefined' && !!navigator.clipboard && !!window.ClipboardItem;
     const taxasVisiveis = verMais ? todasTaxas : todasTaxas.slice(0, 12);
 
-    const formatarMoeda = (valor: number): string =>
-        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-
-    const calcularJurosAoMes = (taxaTotal: number, parcelas: number): string => {
-        const txDecimal = taxaTotal / 100;
-        const mensal = Math.pow(1 + txDecimal, 1 / parcelas) - 1;
-        return (mensal * 100).toFixed(2) + '% ao mês';
-    };
-
     const gerarImagem = async () => {
         if (!ref.current) return;
         try {

@@ -51,12 +51,6 @@ export default function CalculadoraPage() {
             currency: 'BRL',
         }).format(valor);
 
-    const calcularJurosAoMes = (taxaTotal: number, parcelas: number): string => {
-        const txDecimal = taxaTotal / 100;
-        const mensal = Math.pow(1 + txDecimal, 1 / parcelas) - 1;
-        return (mensal * 100).toFixed(2) + '% ao mês';
-    };
-
     const gerarImagem = async () => {
         if (!printRef.current) return;
         const node = printRef.current;
