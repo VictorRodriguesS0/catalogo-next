@@ -41,6 +41,7 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                 setShowModal(false); // Fecha o modal
                 // Adiciona novamente o estado ao histórico, impedindo voltar de verdade
                 window.history.pushState(null, '');
+                console.log('Modal fechado via botão voltar', e);
             }
         };
 

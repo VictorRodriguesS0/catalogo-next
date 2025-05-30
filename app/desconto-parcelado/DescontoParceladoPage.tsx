@@ -16,6 +16,10 @@ export default function DescontoParceladoPage() {
 
     const [taxas, setTaxas] = useState<{ parcelas: string; taxa: number }[]>([]);
 
+    type LinhaTaxa = {
+        parcelas: string;
+        taxas: string;
+    }
 
     useEffect(() => {
         fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTZo0cz1xfr9W9_FKCtUOPdHkySf0CwbjRIMmKLPuiAm5UKADrl9fDy8MnCDiDBmURS1qibVjiSbGu3/pub?gid=1304300267&single=true&output=csv')
@@ -26,7 +30,7 @@ export default function DescontoParceladoPage() {
                     skipEmptyLines: true
                 });
 
-                const taxasCSV = (parsed.data as any[]).map((linha) => {
+                const taxasCSV = (parsed.data as LinhaTaxa[]).map((linha) => {
                     const parcelas = linha.parcelas?.trim();
                     const taxaStr = linha.taxas?.trim();
 
@@ -52,12 +56,6 @@ export default function DescontoParceladoPage() {
         !!window.ClipboardItem;
 
     const taxasVisiveis = verMais ? taxas : taxas.slice(0, 12);
-
-    const formatarMoeda = (valor: number): string =>
-        new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-        }).format(valor);
 
     const gerarImagem = async () => {
         if (!printRef.current) return;
