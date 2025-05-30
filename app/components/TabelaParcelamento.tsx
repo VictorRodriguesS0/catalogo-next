@@ -45,8 +45,8 @@ export default function TabelaParcelamento({
             <tbody>
                 {taxas.map(({ parcelas, taxa }, index) => {
                     const taxaDecimal = taxa / 100;
-                    const totalComTaxa = preco * (1 + taxaDecimal);
                     const qtdParcelas = parseInt(parcelas.replace('x', '')) || 1;
+                    const totalComTaxa = preco * (1 + taxaDecimal);
                     const valorParcela = totalComTaxa / qtdParcelas;
                     const jurosMes = calcularJurosAoMes(taxa, qtdParcelas);
                     const texto = `${parcelas} de ${formatarMoeda(valorParcela)} - Total: ${formatarMoeda(totalComTaxa)}`;
