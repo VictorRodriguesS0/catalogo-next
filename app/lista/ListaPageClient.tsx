@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchProducts } from '@/lib/fetchProducts';
+import { fetchProducts } from '@/lib/fetchProductsWoo';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';

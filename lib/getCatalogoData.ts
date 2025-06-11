@@ -1,5 +1,5 @@
 // lib/getCatalogoData.ts
-import { fetchProducts } from './fetchProducts';
+import { fetchProducts } from './fetchProductsWoo';
 import { fetchTaxas } from './fetchTaxas';
 
 export async function getCatalogoData() {

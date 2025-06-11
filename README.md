@@ -1,6 +1,6 @@
 # 📱 Catálogo de Produtos - Lojinha Eletrônicos
 
-Catálogo moderno feito com **Next.js 14**, **TypeScript**, **Tailwind CSS** e **Framer Motion**, alimentado por **Google Sheets** (CSV público) e integrado com o **TinyERP** para consultar estoque em tempo real.
+Catálogo moderno feito com **Next.js 14**, **TypeScript**, **Tailwind CSS** e **Framer Motion**, alimentado por **Google Sheets** (CSV público).
 
 ---
 
@@ -30,7 +30,7 @@ app/
 ├─ comparar/             # Página de comparação de produtos
 ├─ calculadora/          # Simulador de parcelamento
 ├─ context/              # Contextos globais (produtos, comparação)
-├─ api/                  # Endpoints internos (ex: estoque TinyERP)
+├─ api/                  # Endpoints internos
 lib/                     # Funções auxiliares (fetch, format, filtros, etc.)
 public/                  # Imagens, favicon
 ```
@@ -42,8 +42,10 @@ public/                  # Imagens, favicon
 Crie um arquivo `.env.local` com:
 
 ```
-TINY_API_TOKEN=sua-chave-aqui
 NEXT_PUBLIC_SITE_URL=https://catalogo-next.netlify.app
+WC_KEY=sua-chave-woocommerce
+WC_SECRET=sua-senha-woocommerce
+WOOCOMMERCE_API_BASE=https://sualoja.com
 ```
 
 ---

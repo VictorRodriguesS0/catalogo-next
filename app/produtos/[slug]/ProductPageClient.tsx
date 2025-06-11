@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import GaleriaProduto from '@/app/components/GaleriaProduto';
 import { formatPreco } from '@/lib/formatPrice';
-import { Product } from '@/lib/fetchProducts';
+import { Product } from '@/lib/fetchProductsWoo';
 import ProdutosRelacionados from '@/app/components/ProdutosRelacionados';
 import { Share2 } from 'lucide-react';
 import { MdOutlineImageNotSupported } from 'react-icons/md';
@@ -159,11 +159,6 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                         {product.subcategoria && <p><strong>Subcategoria:</strong> {product.subcategoria}</p>}
                     </div>
 
-                    {product.estoqueSaldo !== undefined && product.estoqueSaldo <= 3 && product.estoqueSaldo > 0 && (
-                        <p className="text-sm text-red-600 font-semibold mb-2">
-                            Últimas unidades
-                        </p>
-                    )}
 
                     {!product.disponivel ? null : product.promocao ? (
                         <>

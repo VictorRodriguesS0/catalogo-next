@@ -1,6 +1,5 @@
 import Papa from 'papaparse';
 import { loja } from '@/app/config/lojaConfig';
-import { fetchEstoqueTiny } from './fetchEstoqueTiny';
 
 export interface Product {
     titulo: string;
@@ -23,8 +22,6 @@ export interface Product {
     slug: string;
     tem5g?: boolean;
     temNFC?: boolean;
-    idTiny?: string;
-    estoqueSaldo?: number;
     disponivel?: boolean;
 }
 
@@ -46,7 +43,6 @@ interface RawProduct {
     ram?: string;
     armazenamento?: string;
     NFC?: string;
-    idTiny?: string;
 }
 
 function slugify(text: string): string {
@@ -97,24 +93,8 @@ export async function fetchProducts(): Promise<Product[]> {
                             const nfcBruto = (p.NFC || '').trim().toLowerCase();
                             const temNFC = ['sim', 'nfc', 'true'].includes(nfcBruto);
 
-                            let estoqueSaldo: number | undefined = undefined;
-                            const idTiny = p.idTiny?.trim().toLowerCase();
-
-                            if (idTiny === 'infinito') {
-                                estoqueSaldo = 1;
-                            } else if (idTiny) {
-                                try {
-                                    const estoqueData = await fetchEstoqueTiny(idTiny);
-                                    estoqueSaldo = estoqueData.saldo;
-                                    console.log(`Estoque do produto ${p.titulo}:`, estoqueSaldo);
-                                } catch (err) {
-                                    console.warn(`Erro ao buscar estoque do produto ${p.titulo}:`, err);
-                                }
-                            }
-
                             const planilhaInativo = String(p.inativo || '').trim().toLowerCase() === 'true';
-                            const inativoPorEstoque = idTiny && idTiny !== 'infinito' && (estoqueSaldo ?? 0) <= 0;
-                            const disponivel = !(planilhaInativo || inativoPorEstoque);
+                            const disponivel = !planilhaInativo;
 
                             return {
                                 ...p,
@@ -137,10 +117,9 @@ export async function fetchProducts(): Promise<Product[]> {
                                 slug: slugify(p.titulo),
                                 tem5g,
                                 temNFC,
-                                idTiny,
-                                estoqueSaldo,
+
                                 disponivel,
-                                inativo: planilhaInativo || inativoPorEstoque ? 'true' : 'false',
+                                inativo: planilhaInativo ? 'true' : 'false',
                             };
                         })
                 );

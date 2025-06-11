@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatPreco } from '@/lib/formatPrice';
-import { Product } from '@/lib/fetchProducts';
+import { Product } from '@/lib/fetchProductsWoo';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { useComparar } from '@/app/context/CompararContext';
 import { motion } from 'framer-motion';

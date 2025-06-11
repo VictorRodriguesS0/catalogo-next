@@ -1,6 +1,6 @@
 'use client';
 
-import { Product } from '@/lib/fetchProducts';
+import { Product } from '@/lib/fetchProductsWoo';
 import ProductCard from './ProductCard';
 import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 

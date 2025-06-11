@@ -3,7 +3,7 @@
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import ProductCard from './ProductCard';
-import { Product } from '@/lib/fetchProducts';
+import { Product } from '@/lib/fetchProductsWoo';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
