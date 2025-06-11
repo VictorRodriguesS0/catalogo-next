@@ -159,11 +159,6 @@ export default function ProductPageClient({ product, imagens, todosProdutos }: P
                         {product.subcategoria && <p><strong>Subcategoria:</strong> {product.subcategoria}</p>}
                     </div>
 
-                    {product.estoqueSaldo !== undefined && product.estoqueSaldo <= 3 && product.estoqueSaldo > 0 && (
-                        <p className="text-sm text-red-600 font-semibold mb-2">
-                            Últimas unidades
-                        </p>
-                    )}
 
                     {!product.disponivel ? null : product.promocao ? (
                         <>
