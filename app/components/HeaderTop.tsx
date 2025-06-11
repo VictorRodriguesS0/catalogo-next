@@ -25,7 +25,11 @@ import { loja } from '@/app/config/lojaConfig';
 
 const SearchBox = dynamic(() => import('./SearchBox'), { ssr: false });
 
-type MenuEstrutura = Record<string, string[]>;
+interface MenuCategoria {
+    id: number;
+    name: string;
+    children: MenuCategoria[];
+}
 
 export default function HeaderTop({
     menuAberto,
@@ -34,7 +38,7 @@ export default function HeaderTop({
     menuAberto: boolean;
     setMenuAberto: Dispatch<SetStateAction<boolean>>;
 }) {
-    const [menu, setMenu] = useState<MenuEstrutura>({});
+    const [menu, setMenu] = useState<MenuCategoria[]>([]);
     const asideRef = useRef<HTMLDivElement | null>(null);
     const touchStartX = useRef(0);
 
@@ -134,29 +138,29 @@ export default function HeaderTop({
                             </div>
 
                             <ul className="space-y-4">
-                                {Object.entries(menu).map(([categoria, subcategorias]) => {
-                                    const subs = [...subcategorias];
+                                {menu.map((categoria) => {
+                                    const subs = [...categoria.children];
                                     const xiaomiIndex = subs.findIndex(
-                                        (s) => s.toLowerCase() === 'xiaomi'
+                                        (s) => s.name.toLowerCase() === 'xiaomi'
                                     );
                                     if (xiaomiIndex > 0) {
                                         const [xiaomi] = subs.splice(xiaomiIndex, 1);
                                         subs.unshift(xiaomi);
                                     }
                                     return (
-                                        <li key={categoria}>
+                                        <li key={categoria.id}>
                                             <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
                                                 <span className="text-gray-500">
-                                                    {getIconeCategoria(categoria)}
+                                                    {getIconeCategoria(categoria.name)}
                                                 </span>
-                                                {categoria}
+                                                {categoria.name}
                                             </div>
 
                                             <ul className="mt-3 pl-4 pr-3 space-y-2">
                                                 <li>
                                                     <Link
                                                         href={`/produtos?categoria=${encodeURIComponent(
-                                                            categoria
+                                                            categoria.name
                                                         )}`}
                                                         onClick={() => setMenuAberto(false)}
                                                         className="block text-sm text-blue-600 font-medium hover:underline"
@@ -165,15 +169,15 @@ export default function HeaderTop({
                                                     </Link>
                                                 </li>
                                                 {subs.map((sub) => (
-                                                    <li key={sub}>
+                                                    <li key={sub.id}>
                                                         <Link
                                                             href={`/categorias/${encodeURIComponent(
-                                                                categoria
-                                                            )}/${encodeURIComponent(sub)}`}
+                                                                categoria.name
+                                                            )}/${encodeURIComponent(sub.name)}`}
                                                             onClick={() => setMenuAberto(false)}
                                                             className="block text-sm text-gray-700 hover:underline"
                                                         >
-                                                            {sub}
+                                                            {sub.name}
                                                         </Link>
                                                     </li>
                                                 ))}

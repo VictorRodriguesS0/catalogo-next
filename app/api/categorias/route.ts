@@ -1,31 +1,31 @@
-import { fetchProducts } from '@/lib/fetchProductsWoo';
 import { NextResponse } from 'next/server';
-import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
+import { fetchCategories } from '@/lib/fetchCategoriesWoo';
+
+interface CategoryNode {
+    id: number;
+    name: string;
+    parent: number;
+    children: CategoryNode[];
+}
 
 export async function GET() {
-    const produtos = await fetchProducts();
+    const categorias = await fetchCategories();
 
-    const estrutura: Record<string, Set<string>> = {};
+    const map = new Map<number, CategoryNode>();
+    const roots: CategoryNode[] = [];
 
-    for (const p of produtos) {
-        if (!p.categoria || !isProdutoAtivo(p)) continue;
+    for (const c of categorias) {
+        map.set(c.id, { ...c, children: [] });
+    }
 
-        const categoria = p.categoria.trim();
-        const subcategoria = p.subcategoria?.trim();
-
-        if (!estrutura[categoria]) {
-            estrutura[categoria] = new Set();
-        }
-
-        if (subcategoria) {
-            estrutura[categoria].add(subcategoria);
+    for (const c of categorias) {
+        const node = map.get(c.id)!;
+        if (c.parent && map.has(c.parent)) {
+            map.get(c.parent)!.children.push(node);
+        } else {
+            roots.push(node);
         }
     }
 
-    const resultado: Record<string, string[]> = {};
-    for (const [categoria, subcategorias] of Object.entries(estrutura)) {
-        resultado[categoria] = Array.from(subcategorias).sort();
-    }
-
-    return NextResponse.json(resultado);
+    return NextResponse.json(roots);
 }
