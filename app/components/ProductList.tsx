@@ -6,7 +6,7 @@ import { useCatalogo } from '@/app/context/CatalogoContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { filtrarProdutos } from '@/lib/filtrarProdutos';
 import { aliasesCategorias } from '@/lib/aliasesCategorias';
-import { Product } from '@/lib/fetchProducts';
+import { Product } from '@/lib/fetchProductsWoo';
 import { useEffect, useRef, useState } from 'react';
 
 const LIMITE_INICIAL = 20;

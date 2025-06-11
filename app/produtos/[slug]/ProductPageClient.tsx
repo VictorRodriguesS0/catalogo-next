@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import GaleriaProduto from '@/app/components/GaleriaProduto';
 import { formatPreco } from '@/lib/formatPrice';
-import { Product } from '@/lib/fetchProducts';
+import { Product } from '@/lib/fetchProductsWoo';
 import ProdutosRelacionados from '@/app/components/ProdutosRelacionados';
 import { Share2 } from 'lucide-react';
 import { MdOutlineImageNotSupported } from 'react-icons/md';

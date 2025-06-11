@@ -1,4 +1,4 @@
-import { fetchProducts } from '@/lib/fetchProducts';
+import { fetchProducts } from '@/lib/fetchProductsWoo';
 import ProductCard from '@/app/components/ProductCard';
 import Link from 'next/link';
 

@@ -1,6 +1,6 @@
 // lib/isProdutoAtivo.ts
 
-import { Product } from './fetchProducts';
+import { Product } from './fetchProductsWoo';
 
 /**
  * Retorna true se o produto estiver ativo (ou seja, não marcado como inativo e com estoque se aplicável).

@@ -7,7 +7,7 @@ import { formatPreco } from '@/lib/formatPrice';
 import { useComparar } from '@/app/context/CompararContext';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { useSearchParams, usePathname } from 'next/navigation';
-import { Product } from '@/lib/fetchProducts';
+import { Product } from '@/lib/fetchProductsWoo';
 
 export default function CompararPageInner() {
     const { comparar, adicionar, remover, limpar } = useComparar();

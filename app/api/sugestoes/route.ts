@@ -1,4 +1,4 @@
-import { fetchProducts } from '@/lib/fetchProducts';
+import { fetchProducts } from '@/lib/fetchProductsWoo';
 import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
 import { NextResponse } from 'next/server';
 

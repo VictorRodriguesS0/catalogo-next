@@ -1,4 +1,4 @@
-import { Product } from './fetchProducts';
+import { Product } from './fetchProductsWoo';
 import { isProdutoAtivo } from './isProdutoAtivo';
 
 interface Filtros {
