@@ -27,7 +27,6 @@ Catálogo moderno feito com **Next.js 14**, **TypeScript**, **Tailwind CSS** e *
 app/
 ├─ components/           # Componentes reutilizáveis
 ├─ produtos/             # Listagem e página de produto
-├─ comparar/             # Página de comparação de produtos
 ├─ calculadora/          # Simulador de parcelamento
 ├─ context/              # Contextos globais (produtos, comparação)
 ├─ api/                  # Endpoints internos (ex: estoque TinyERP)

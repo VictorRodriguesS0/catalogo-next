@@ -1,153 +1,126 @@
-import Papa from 'papaparse';
-import { loja } from '@/app/config/lojaConfig';
-import { fetchEstoqueTiny } from './fetchEstoqueTiny';
+// lib/fetchProducts.ts
 
 export interface Product {
-    titulo: string;
-    valor: number;
-    promocao?: number;
-    emPromocao: boolean;
-    destaque: boolean;
-    cor?: string;
-    marca?: string;
-    categoria: string;
-    subcategoria?: string;
-    imagemPrincipal?: string;
-    imagem2?: string;
-    imagem3?: string;
-    imagem4?: string;
-    descricao?: string;
-    inativo?: string;
-    ram?: string;
-    armazenamento?: string;
-    slug: string;
-    tem5g?: boolean;
-    temNFC?: boolean;
-    idTiny?: string;
-    estoqueSaldo?: number;
-    disponivel?: boolean;
+  id: number;
+  slug: string;
+  titulo: string;
+  valor: number;
+  promocao: number | null;
+  imagemPrincipal: string;
+  imagens: string[];
+  descricao: string;
+  inativo?: boolean;
+
+  marca?: string;
+  cor?: string;
+  ram?: string;
+  armazenamento?: string;
+  nfc?: boolean;
+  cincoG?: boolean;
+  destaque?: boolean;
+
+  categoriaMae?: string;
+  categoria?: string;
 }
 
-interface RawProduct {
-    titulo: string;
-    valor: string;
-    promocao?: string;
-    destaque?: string;
-    cor?: string;
-    marca?: string;
-    categoria: string;
-    subcategoria?: string;
-    imagemPrincipal?: string;
-    imagem2?: string;
-    imagem3?: string;
-    imagem4?: string;
-    descricao?: string;
-    inativo?: string;
-    ram?: string;
-    armazenamento?: string;
-    NFC?: string;
-    idTiny?: string;
+interface CategoriaProduto {
+  id: number;
+  name: string;
+  slug: string;
+  parent: number;
 }
 
-function slugify(text: string): string {
-    return text
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
+interface ProdutoAPI {
+  id: number;
+  slug: string;
+  name: string;
+  price: string;
+  sale_price: string | null;
+  description: string;
+  images: { src: string }[];
+  categories: CategoriaProduto[];
+
+  attributes?: { name: string; options: string[] }[];
+
+  meta_data?: { key: string; value: string }[];
+  status?: string;
 }
 
-function parseValor(raw: string | undefined): number | undefined {
-    if (!raw) return undefined;
-
-    const cleaned = raw
-        .replace(/[^\d.,]/g, '')
-        .replace(/\.(?=\d{3})/g, '')
-        .replace(',', '.');
-
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? undefined : parsed;
+function parsePromocao(sale_price: string | null): number | null {
+  if (!sale_price) return null;
+  const valor = parseFloat(sale_price.replace("R$", "").replace(",", "."));
+  return isNaN(valor) ? null : valor;
 }
 
 export async function fetchProducts(): Promise<Product[]> {
-    const response = await fetch(loja.csvCatalogoUrl);
-    const csvText = await response.text();
+  const url = `${process.env.WOOCOMMERCE_API_BASE}/wp-json/wc/v3/products?consumer_key=${process.env.WC_KEY}&consumer_secret=${process.env.WC_SECRET}&per_page=100`;
 
-    return new Promise((resolve, reject) => {
-        Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (results) => {
-                const data = results.data as RawProduct[];
+  const res = await fetch(url);
 
-                const validProducts: Product[] = await Promise.all(
-                    data
-                        .filter(
-                            (p) =>
-                                p.titulo &&
-                                p.valor &&
-                                p.categoria
-                        )
-                        .map(async (p) => {
-                            const promocaoNum = parseValor(p.promocao);
-                            const valorNum = parseValor(p.valor) ?? 0;
+  if (!res.ok) {
+    console.error("Erro ao buscar produtos:", res.statusText);
+    return [];
+  }
 
-                            const tem5g = p.titulo.includes(' 5G ');
-                            const nfcBruto = (p.NFC || '').trim().toLowerCase();
-                            const temNFC = ['sim', 'nfc', 'true'].includes(nfcBruto);
+  const data: ProdutoAPI[] = await res.json();
 
-                            let estoqueSaldo: number | undefined = undefined;
-                            const idTiny = p.idTiny?.trim().toLowerCase();
+  return data
+    .filter((item) => item && item.id && item.status !== "draft")
+    .map((item): Product => {
+      const imagens = item.images?.map((img) => img.src) || [];
+      const valor = parseFloat(item.price.replace("R$", "").replace(",", "."));
 
-                            if (idTiny === 'infinito') {
-                                estoqueSaldo = 1;
-                            } else if (idTiny) {
-                                try {
-                                    const estoqueData = await fetchEstoqueTiny(idTiny);
-                                    estoqueSaldo = estoqueData.saldo;
-                                    console.log(`Estoque do produto ${p.titulo}:`, estoqueSaldo);
-                                } catch (err) {
-                                    console.warn(`Erro ao buscar estoque do produto ${p.titulo}:`, err);
-                                }
-                            }
+      const categorias = item.categories || [];
+      const categoriaMae = categorias[0]?.slug || undefined;
+      const categoria = categorias[1]?.slug || undefined;
 
-                            const planilhaInativo = String(p.inativo || '').trim().toLowerCase() === 'true';
-                            const inativoPorEstoque = idTiny && idTiny !== 'infinito' && (estoqueSaldo ?? 0) <= 0;
-                            const disponivel = !(planilhaInativo || inativoPorEstoque);
+      const getAttr = (nome: string): string | undefined => {
+        const attr = item.attributes?.find(
+          (a) => a.name.toLowerCase() === nome.toLowerCase()
+        );
+        return attr?.options?.[0];
+      };
 
-                            return {
-                                ...p,
-                                titulo: p.titulo.trim(),
-                                valor: valorNum,
-                                promocao: promocaoNum,
-                                emPromocao: !!promocaoNum,
-                                destaque: String(p.destaque || '').toLowerCase() === 'true',
-                                cor: p.cor?.trim() || undefined,
-                                marca: p.marca?.trim() || undefined,
-                                categoria: p.categoria.trim(),
-                                subcategoria: p.subcategoria?.trim() || undefined,
-                                imagemPrincipal: p.imagemPrincipal?.trim(),
-                                imagem2: p.imagem2?.trim(),
-                                imagem3: p.imagem3?.trim(),
-                                imagem4: p.imagem4?.trim(),
-                                descricao: p.descricao?.trim(),
-                                ram: p.ram?.trim(),
-                                armazenamento: p.armazenamento?.trim(),
-                                slug: slugify(p.titulo),
-                                tem5g,
-                                temNFC,
-                                idTiny,
-                                estoqueSaldo,
-                                disponivel,
-                                inativo: planilhaInativo || inativoPorEstoque ? 'true' : 'false',
-                            };
-                        })
-                );
+      const getMeta = (chave: string): string | boolean | undefined => {
+        return item.meta_data?.find((m) => m.key === chave)?.value;
+      };
 
-                resolve(validProducts);
-            },
-            error: (error: unknown) => reject(error),
-        });
+      const rawPromo = getMeta("promocao");
+
+      const promocaoAtiva =
+        rawPromo === true ||
+        rawPromo === "true" ||
+        rawPromo === "sim" ||
+        rawPromo === "1";
+
+      return {
+        id: item.id,
+        slug: item.slug,
+        titulo: item.name,
+        valor,
+        promocao: promocaoAtiva ? parsePromocao(item.sale_price) : null,
+        imagemPrincipal: imagens[0] || "/fallback.png",
+        imagens,
+        descricao: item.description || "",
+        inativo: getMeta("inativo") === true || getMeta("inativo") === "true",
+
+        marca: getAttr("Marca"),
+        cor: getAttr("Cor"),
+        ram: getAttr("RAM"),
+        armazenamento: getAttr("Armazenamento"),
+        nfc:
+          getAttr("NFC")?.toLowerCase() === "sim" ||
+          getAttr("NFC")?.toLowerCase() === "nfc",
+        cincoG:
+          getAttr("5G")?.toLowerCase() === "sim" || getAttr("5G") === "5G",
+        destaque:
+          getMeta("destaque") === true ||
+          getMeta("destaque") === "true" ||
+          getMeta("destaque") === "sim" ||
+          getMeta("destaque") === "1",
+
+        categoriaMae,
+        categoria,
+      };
     });
 }

@@ -1,61 +1,58 @@
-import { Product } from './fetchProducts';
-import { isProdutoAtivo } from './isProdutoAtivo';
+// lib/filtrarProdutos.ts
+import { Product } from "./fetchProducts";
 
 interface Filtros {
-    categoria?: string;
-    busca?: string;
-    marcas?: string[];
-    cores?: string[];
-    destaque?: boolean;
-    promocao?: boolean;
-    tem5g?: boolean;
-    temNFC?: boolean;
+  busca?: string;
+  categoria?: string;
+  categoriaMae?: string;
+  marca?: string;
+  cor?: string;
+  destaque?: boolean;
+  emPromocao?: boolean;
 }
 
-export function filtrarProdutos(produtos: Product[], filtros: Filtros) {
-    const {
-        categoria = '',
-        busca = '',
-        marcas = [],
-        cores = [],
-        destaque = false,
-        promocao = false,
-        tem5g = false,
-        temNFC = false,
-    } = filtros;
+export function filtrarProdutos(
+  produtos: Product[],
+  filtros: Filtros
+): Product[] {
+  return produtos.filter((produto) => {
+    const { busca, categoria, categoriaMae, marca, cor, destaque, emPromocao } =
+      filtros;
 
-    return produtos
-        .filter(isProdutoAtivo)
-        .filter((produto) => {
-            const matchCategoria =
-                categoria === 'promoções'
-                    ? produto.emPromocao
-                    : categoria
-                        ? produto.categoria?.toLowerCase() === categoria
-                        : true;
+    // 🔎 Filtro por busca
+    if (busca && !produto.titulo.toLowerCase().includes(busca.toLowerCase())) {
+      return false;
+    }
 
-            const matchBusca =
-                busca === '' ||
-                produto.titulo.toLowerCase().includes(busca) ||
-                produto.descricao?.toLowerCase().includes(busca) ||
-                produto.categoria?.toLowerCase().includes(busca);
+    // 🧩 Filtro por categoria mãe e subcategoria
+    if (categoriaMae && produto.categoriaMae !== categoriaMae) {
+      return false;
+    }
 
-            const matchMarca = marcas.length === 0 || marcas.includes(produto.marca?.toLowerCase() || '');
-            const matchCor = cores.length === 0 || cores.includes(produto.cor?.toLowerCase() || '');
-            const matchDestaque = !destaque || produto.destaque;
-            const matchPromocao = !promocao || produto.emPromocao;
-            const match5g = !tem5g || produto.tem5g;
-            const matchNfc = !temNFC || produto.temNFC;
+    if (categoria && produto.categoria !== categoria) {
+      return false;
+    }
 
-            return (
-                matchCategoria &&
-                matchBusca &&
-                matchMarca &&
-                matchCor &&
-                matchDestaque &&
-                matchPromocao &&
-                match5g &&
-                matchNfc
-            );
-        });
+    // 🏷️ Filtro por marca
+    if (marca && produto.marca !== marca) {
+      return false;
+    }
+
+    // 🎨 Filtro por cor
+    if (cor && produto.cor !== cor) {
+      return false;
+    }
+
+    // 🌟 Filtro por destaque
+    if (destaque && !produto.destaque) {
+      return false;
+    }
+
+    // 💥 Filtro por promoção
+    if (emPromocao && !produto.promocao) {
+      return false;
+    }
+
+    return true;
+  });
 }

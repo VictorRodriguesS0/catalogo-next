@@ -1,31 +1,32 @@
-import { fetchProducts } from '@/lib/fetchProducts';
-import { NextResponse } from 'next/server';
-import { isProdutoAtivo } from '@/lib/isProdutoAtivo';
+import { fetchProducts } from "@/lib/fetchProducts";
+import { NextResponse } from "next/server";
+import { isProdutoAtivo } from "@/lib/isProdutoAtivo";
 
 export async function GET() {
-    const produtos = await fetchProducts();
+  const produtos = await fetchProducts();
 
-    const estrutura: Record<string, Set<string>> = {};
+  // Estrutura usando Map para garantir unicidade e facilitar ordenação
+  const estrutura = new Map<string, Set<string>>();
 
-    for (const p of produtos) {
-        if (!p.categoria || !isProdutoAtivo(p)) continue;
+  for (const p of produtos) {
+    if (!p.categoriaPrincipal || !isProdutoAtivo(p)) continue;
 
-        const categoria = p.categoria.trim();
-        const subcategoria = p.subcategoria?.trim();
+    const categoria = p.categoriaPrincipal.trim();
+    const subcategoria = p.categorias?.[1]?.trim();
 
-        if (!estrutura[categoria]) {
-            estrutura[categoria] = new Set();
-        }
-
-        if (subcategoria) {
-            estrutura[categoria].add(subcategoria);
-        }
+    if (!estrutura.has(categoria)) {
+      estrutura.set(categoria, new Set());
     }
 
-    const resultado: Record<string, string[]> = {};
-    for (const [categoria, subcategorias] of Object.entries(estrutura)) {
-        resultado[categoria] = Array.from(subcategorias).sort();
+    if (subcategoria) {
+      estrutura.get(categoria)?.add(subcategoria);
     }
+  }
 
-    return NextResponse.json(resultado);
+  const resultado: Record<string, string[]> = {};
+  for (const [categoria, subcategorias] of estrutura.entries()) {
+    resultado[categoria] = Array.from(subcategorias).sort();
+  }
+
+  return NextResponse.json(resultado);
 }

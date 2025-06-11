@@ -1,12 +1,14 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
-export default async function SubcategoriaPage({
-    params,
+export default function SubcategoriaPage({
+  params,
 }: {
-    params: Promise<{ categoria: string; subcategoria: string }>;
+  params: { categoria: string; subcategoria: string };
 }) {
-    const { categoria, subcategoria } = await params;
+  const { categoria, subcategoria } = params;
 
-    const query = `?categoria=${encodeURIComponent(categoria)}&busca=${encodeURIComponent(subcategoria)}`;
-    redirect(`/produtos${query}`);
+  const query = `?categoria=${encodeURIComponent(
+    subcategoria
+  )}&categoriaMae=${encodeURIComponent(categoria)}`;
+  redirect(`/produtos${query}`);
 }
