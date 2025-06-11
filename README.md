@@ -43,6 +43,9 @@ Crie um arquivo `.env.local` com:
 
 ```
 NEXT_PUBLIC_SITE_URL=https://catalogo-next.netlify.app
+WC_KEY=sua-chave-woocommerce
+WC_SECRET=sua-senha-woocommerce
+WOOCOMMERCE_API_BASE=https://sualoja.com
 ```
 
 ---

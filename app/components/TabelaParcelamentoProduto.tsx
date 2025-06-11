@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import * as htmlToImage from 'html-to-image';
 import { Camera } from 'lucide-react';
-import { Product } from '@/lib/fetchProducts';
+import { Product } from '@/lib/fetchProductsWoo';
 import { useCatalogo } from '@/app/context/CatalogoContext';
 import { MdMemory } from 'react-icons/md';
 import { RiSdCardMiniLine } from 'react-icons/ri';

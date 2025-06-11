@@ -1,4 +1,4 @@
-import { fetchProducts } from '@/lib/fetchProducts';
+import { fetchProducts } from '@/lib/fetchProductsWoo';
 import { notFound } from 'next/navigation';
 import ProductPageClient from './ProductPageClient';
 import type { Metadata } from 'next';
