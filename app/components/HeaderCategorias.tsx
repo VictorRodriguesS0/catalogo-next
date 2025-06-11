@@ -6,10 +6,14 @@ import { ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
 import getIconeCategoria from '@/lib/IconeCategoria';
 
-type Menu = Record<string, string[]>;
+interface MenuCategoria {
+    id: number;
+    name: string;
+    children: MenuCategoria[];
+}
 
 export default function HeaderCategorias() {
-    const [menu, setMenu] = useState<Menu>({});
+    const [menu, setMenu] = useState<MenuCategoria[]>([]);
     const [categoriaAberta, setCategoriaAberta] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -36,7 +40,7 @@ export default function HeaderCategorias() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [categoriaAberta]);
 
-    const todasCategorias = Object.keys(menu);
+    const todasCategorias = menu.map((c) => c.name);
     const categoriasSemPromocoes = todasCategorias.filter(
         (c) => c.toLowerCase() !== 'promoções'
     );
@@ -45,7 +49,8 @@ export default function HeaderCategorias() {
     );
 
     const handleCategoriaClick = (categoria: string, e: React.MouseEvent) => {
-        const temSub = menu[categoria]?.length > 0;
+        const cat = menu.find((c) => c.name === categoria);
+        const temSub = cat?.children.length ? true : false;
 
         if (window.innerWidth < 768) {
             if (temSub) {
@@ -65,7 +70,8 @@ export default function HeaderCategorias() {
                 <ul className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm ">
                     {principaisCategorias.map((categoria) => {
                         const isAberta = categoriaAberta === categoria;
-                        const temSub = menu[categoria]?.length > 0;
+                        const cat = menu.find((c) => c.name === categoria);
+                        const temSub = cat?.children.length ? true : false;
 
                         return (
                             <li key={categoria} className="relative group">
@@ -117,16 +123,16 @@ export default function HeaderCategorias() {
                                                 Ver tudo
                                             </Link>
                                         </li>
-                                        {menu[categoria].map((sub) => (
-                                            <li key={sub}>
+                                        {cat?.children.map((sub) => (
+                                            <li key={sub.id}>
                                                 <Link
                                                     href={`/categorias/${encodeURIComponent(
                                                         categoria
-                                                    )}/${encodeURIComponent(sub)}`}
+                                                    )}/${encodeURIComponent(sub.name)}`}
                                                     onClick={fecharDropdownMobile}
                                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
                                                 >
-                                                    {sub}
+                                                    {sub.name}
                                                 </Link>
                                             </li>
                                         ))}
